@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+#ingnore cmake/build directories
+Build
+Output
