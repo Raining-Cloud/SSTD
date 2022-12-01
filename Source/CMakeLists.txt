@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(PROJECTNAME "SSTD")
+set(SSTD_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/")
 
 set(general_sources ${general_sources}
    General/Algorithm.h
@@ -72,5 +73,4 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${general_sources} ${contain
 add_library(${PROJECTNAME} STATIC ${general_sources} ${container_sources} ${math_sources} ${platform_sources} ${experimental_sources})
 set_property(TARGET ${PROJECTNAME} PROPERTY LINKER_LANGUAGE CXX)
 set_property(TARGET ${PROJECTNAME} PROPERTY CXX_STANDARD 20)
-
-target_include_directories(${PROJECTNAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/")
+target_include_directories(${PROJECTNAME} PRIVATE ${SSTD_INCLUDE})

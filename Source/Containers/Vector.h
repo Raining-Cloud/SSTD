@@ -6,6 +6,8 @@
 #include "General/Concepts.h"
 #include "General/Allocator.h"
 
+#include <new>
+
 namespace SSTD
 {
   template<typename T, IntegralType SizeType = size_t, template<typename> typename A = Allocator>
