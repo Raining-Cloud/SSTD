@@ -6,7 +6,6 @@
 #include "Containers/String.h"
 #include "Containers/Vector.h"
 
-#include "File.h"
 #include "Platform/DefinePlatform.h"
 
 /*
@@ -37,11 +36,11 @@ namespace SSTD
     template<typename ReturnValue, typename ... Args>
     struct Callable : public ICallable
     {
-      typedef ReturnValue(*Func)(Args...);
+      typedef ReturnValue(*Apply)(Args...);
 
-      Callable(const String& funcname, Func f) : func_name(func_name), func(f) {}
+      Callable(const String& funcname, Apply f) : func_name(func_name), func(f) {}
       virtual void ReloadFrom(void* handle) override final { func = LoadFunction(func_name, handle); }
-      Func func = nullptr;
+      Apply func = nullptr;
     };
 
   public:
@@ -63,7 +62,7 @@ namespace SSTD
     template<typename ReturnValue, typename ... Args>
     SharedLibaryFunctionHandle LoadFunction(const String& funcname)
     {
-      m_FuncPtrs.Emplace<Callable<ReturnValue, Args>>(funcname, LoadFunction(funcname, m_Handle));
+      m_FuncPtrs.EmplaceBack<Callable<ReturnValue, Args>>(funcname, LoadFunction(funcname, m_Handle));
       return { m_FuncPtrs.Size() - 1 };
     }
 

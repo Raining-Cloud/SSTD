@@ -5,7 +5,7 @@
 #include "General/Numeric.h"
 #include "Containers/String.h"
 #include "Containers/Color.h"
-#include "Containers/Queue.h"
+#include "Containers/Vector.h"
 
 #include "WindowEvent.h"
 
@@ -70,7 +70,8 @@ namespace SSTD
     ~Window();
 
     void Procces();
-    bool PollEvents(WindowEvent& e);
+    auto BeginEvents() const;
+    void EndEvents();
 
     void Realign(uint32 width, uint32 height, uint32 x, uint32 y);
 
@@ -114,7 +115,7 @@ namespace SSTD
 
     void Center();
   private:
-    using WindowEventQueue = Queue<WindowEvent>;
+    using WindowEventQueue = Vector<WindowEvent>;
 #ifdef PLATFORM_WIN64
 
     LRESULT WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

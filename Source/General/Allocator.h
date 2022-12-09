@@ -21,9 +21,21 @@ namespace SSTD
     {
       return static_cast<Pointer>(::operator new(size * sizeof(T)));
     }
+
     void Deallocate(Pointer ptr)
     {
       ::operator delete((void*)ptr);
+    }
+
+    void Construct(Pointer* ptr, const T& value)
+    {
+      new (static_cast<void*>(ptr)) T { value };
+    }
+
+    template<typename U, typename ... Args>
+    void Construct(U* ptr, Args&&... args)
+    {
+      new (static_cast<void*>(ptr)) T{ Forward<Args>(args)... };
     }
   };
 }

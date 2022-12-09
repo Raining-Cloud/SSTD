@@ -3,18 +3,16 @@
 namespace SSTD
 {
   //////////////////////////////////////////////////////
-//                    GENERAL
-//////////////////////////////////////////////////////
-
-  bool Window::PollEvents(WindowEvent& e)
+  //                    GENERAL
+  //////////////////////////////////////////////////////
+  auto Window::BeginEvents() const
   {
-    if (!m_EventQueue.empty())
-    {
-      e = m_EventQueue.front();
-      m_EventQueue.pop();
-      return true;
-    }
-    return false;
+    return m_EventQueue.cbegin();
+  }
+
+  void Window::EndEvents()
+  {
+    m_EventQueue.Clear();
   }
 
   //////////////////////////////////////////////////////
@@ -350,7 +348,7 @@ namespace SSTD
     //only push if we have an actual event!
     if (e.Type() != EventType::None)
     {
-      m_EventQueue.push(e);
+      m_EventQueue.PushBack(e);
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -375,4 +373,4 @@ namespace SSTD
 #elif PLATFORM_MAC
 #elif PLATFORM_LINUX
 #endif 
-  }
+}

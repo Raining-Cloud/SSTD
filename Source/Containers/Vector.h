@@ -6,8 +6,6 @@
 #include "General/Concepts.h"
 #include "General/Allocator.h"
 
-#include <new>
-
 namespace SSTD
 {
   template<typename T, IntegralType SizeType = size_t, template<typename> typename A = Allocator>
@@ -17,38 +15,33 @@ namespace SSTD
   public:
     using VectorIterator = Iterator<T>;
     using ConstVectorIterator = ConstIterator<T>;
-    using AllocType = A<unsigned char>;
+    using AllocType = A<T>;
 
-    Vector() noexcept
-      :m_Buffer(nullptr), m_Size(0), m_Capacity(0), m_Allocator()
-    {}
+    Vector() noexcept {}
 
     explicit Vector(SizeType size)
-      :m_Size(size), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(sizeof(T)* size))
-    {
-      for (SizeType i = 0; i < size; ++i)
-        new(reinterpret_cast<T*>(m_Buffer) + i) T();
-    }
+      :m_Size(0), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(size))
+    {}
 
-    Vector(const T& value, SizeType size = 1)
-      :m_Size(size), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(sizeof(T)* size))
+    Vector(const T& value, SizeType size)
+      :m_Size(size), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(size))
     {
       for (SizeType i = 0; i < size; ++i)
-        new(reinterpret_cast<T*>(m_Buffer) + i) T(value);
+        m_Allocator.Construct(m_Buffer + i, T{ value });
     }
 
     Vector(const T* value, SizeType size)
-      : m_Size(size), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(sizeof(T)* size))
+      : m_Size(size), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(size))
     {
       for (SizeType i = 0; i < m_Size; ++i)
-        new(reinterpret_cast<T*>(m_Buffer) + i) T(value[i]);
+        m_Allocator.Construct(m_Buffer + i, T{ value[i] });
     }
 
     Vector(const Vector& other)
-      :m_Size(other.m_Size), m_Capacity(other.m_Capacity), m_Allocator(other.m_Allocator), m_Buffer(m_Allocator.Allocate(sizeof(T)* other.m_Size))
+      :m_Size(other.m_Size), m_Capacity(other.m_Capacity), m_Allocator(other.m_Allocator), m_Buffer(m_Allocator.Allocate(other.m_Size))
     {
       for (SizeType i = 0; i < other.m_Size; ++i)
-        new(reinterpret_cast<T*>(m_Buffer) + i) T(other[i]);
+        m_Allocator.Construct(m_Buffer + i, T{ other.m_Buffer[i] });
     }
 
     Vector(Vector&& other) noexcept
@@ -73,7 +66,7 @@ namespace SSTD
           ClearBuffer();
 
       if (other.m_Capacity > 0 && m_Buffer == nullptr)
-        m_Buffer = m_Allocator.Allocate(sizeof(T) * other.m_Size);
+        m_Buffer = m_Allocator.Allocate(other.m_Size);
 
       m_Capacity = other.m_Capacity;
       m_Size = other.m_Size;
@@ -93,8 +86,8 @@ namespace SSTD
       return *this;
     }
 
-    inline T& operator[](const SizeType index) { return reinterpret_cast<T*>(m_Buffer)[index]; }
-    inline const T& operator[](const SizeType index) const { return reinterpret_cast<T*>(m_Buffer)[index]; }
+    T& operator[](const SizeType index) { return m_Buffer[index]; }
+    const T& operator[](const SizeType index) const { return m_Buffer[index]; }
 
     void Resize(const SizeType size)
     {
@@ -107,10 +100,10 @@ namespace SSTD
       if (size <= m_Capacity)
         return;
 
-      unsigned char* tmp = m_Allocator.Allocate(sizeof(T) * size);
+      T* tmp = m_Allocator.Allocate(size);
 
       if (m_Buffer)
-        TMemCpy<T>(reinterpret_cast<T*>(tmp), reinterpret_cast<T*>(m_Buffer), m_Size);
+        TMemCpy<T>(tmp, m_Buffer, m_Size);
 
       m_Allocator.Deallocate(m_Buffer);
       m_Buffer = tmp;
@@ -130,140 +123,145 @@ namespace SSTD
     {
       Resize(m_Size);
     }
-  
-    void Push(const T& value)
+
+    void PushBack(const T& value)
     {
-      Emplace(value);
+      EmplaceBack(value);
     }
 
-    void Push(T&& value)
+    void PushBack(T&& value)
     {
-      Emplace(value);
+      EmplaceBack(Forward<T>(value));
     }
 
-    void PushUnique(const T& value)
+    void PushBackUnique(const T& value)
     {
       if (!Contains(value))
-        Push(value);
+        PushBack(value);
     }
 
-    void PushUnique(T&& value)
+    void PushBackUnique(T&& value)
     {
       if (!Contains(value))
-        Push(value);
+        PushBack(value);
     }
 
     template<typename... Args>
-    T& Emplace(Args&&... args)
+    T& EmplaceBack(Args&&... args)
     {
       TryReserve();
-      new (&m_Buffer[m_Size++]) T{ Forward<Args>(args)... };
-      return reinterpret_cast<T*>(m_Buffer)[m_Size];
+      m_Allocator.Construct(m_Buffer + (m_Size++), T{ Forward<Args>(args)... });
+      return m_Buffer[m_Size];
     }
 
-    void Pop()
+    void PopBack()
     {
-      reinterpret_cast<T*>(m_Buffer)[m_Size--].~T();
+      m_Buffer[m_Size--].~T();
     }
 
     void Append(const T* data, SizeType size)
     {
       Reserve(m_Size + size);
-      TMemCpy<T>(reinterpret_cast<T*>(m_Buffer)[m_Size], data, size);
+      TMemCpy<T>(m_Buffer[m_Size], data, size);
       m_Size += size;
     }
 
     void Append(const Vector& other)
     {
-      Append(reinterpret_cast<T*>(other.m_Buffer), other.m_Size);
+      Append(other.m_Buffer, other.m_Size);
     }
 
     T RemoveAt(const SizeType index)
     {
-      T tmp = Move(reinterpret_cast<T*>(m_Buffer)[index]);
-      reinterpret_cast<T*>(m_Buffer)[index].~T();
-      memmove(reinterpret_cast<T*>(m_Buffer)[index], reinterpret_cast<T*>(m_Buffer)[index + 1], m_Size-- - index * sizeof(T)); //shift the elements
+      T tmp = Move(m_Buffer[index]);
+      m_Buffer[index].~T();
+      memmove(m_Buffer[index], m_Buffer[index + 1], (m_Size--) - index); //shift the elements
       return tmp;
     }
 
     SizeType IndexOf(const T& value)
     {
       for (SizeType i = 0; i < m_Size; i++)
-        if (value == reinterpret_cast<T*>(m_Buffer)[i])
+        if (value == m_Buffer[i])
           return i;
       return -1;
     }
 
     T& At(const SizeType index)
     {
-      //STODO: Add check here!
-      return reinterpret_cast<T*>(m_Buffer)[index];
+      if (index > m_Size)
+        throw;
+
+      return m_Buffer[index];
     }
 
     const T& At(const SizeType index) const
     {
-      return reinterpret_cast<T*>(m_Buffer)[index];
+      if (index > m_Size)
+        throw;
+
+      return m_Buffer[index];
     }
 
-    inline bool Contains(const T& value)
+    bool Contains(const T& value)
     {
       for (SizeType i = 0; i < m_Size; i++)
-        if (reinterpret_cast<T*>(m_Buffer)[i] == value)
+        if (m_Buffer[i] == value)
           return true;
       return false;
     }
 
-    inline bool CheckIndex(const SizeType index) { return index < m_Size; }
+    bool CheckIndex(const SizeType index) { return index < m_Size; }
 
-    inline T* GetBuffer() { return reinterpret_cast<T*>(m_Buffer); }
+    T* GetBuffer() { return m_Buffer; }
 
-    inline const T* GetBuffer() const { return reinterpret_cast<T*>(m_Buffer); }
+    const T* GetBuffer() const { return m_Buffer; }
 
-    inline SizeType Size() const { return m_Size; }
+    SizeType Size() const { return m_Size; }
 
-    inline SizeType Capacity() const { return m_Capacity; }
+    SizeType Capacity() const { return m_Capacity; }
 
-    inline bool IsEmpty() const { return m_Size == 0; }
+    bool IsEmpty() const { return m_Size == 0; }
 
     template<typename F>
-    void Func(const F& function)
+    void Apply(const F& function)
     {
       for (SizeType i = 0; i < m_Size; i++)
-        function(reinterpret_cast<T*>(m_Buffer)[i]);
+        function(m_Buffer[i]);
     }
 
-    inline T& Front() { return reinterpret_cast<T*>(m_Buffer)[0]; }
+    T& Front() { return m_Buffer[0]; }
 
-    inline const T& Front() const { return reinterpret_cast<T*>(m_Buffer)[0]; }
+    const T& Front() const { return m_Buffer[0]; }
 
-    inline T& Back() { return reinterpret_cast<T*>(m_Buffer)[m_Size - 1]; }
+    T& Back() { return m_Buffer[m_Size - 1]; }
 
-    inline T& Back() const { return reinterpret_cast<T*>(m_Buffer)[m_Size - 1]; }
+    const T& Back() const { return m_Buffer[m_Size - 1]; }
 
-    inline VectorIterator begin() { return VectorIterator(&reinterpret_cast<T*>(m_Buffer)[0]); }
+    VectorIterator begin() { return VectorIterator(m_Buffer); }
 
-    inline VectorIterator end() { return VectorIterator(&reinterpret_cast<T*>(m_Buffer)[m_Size]); }
+    VectorIterator end() { return VectorIterator(m_Buffer + m_Size); }
 
-    inline ConstVectorIterator begin() const { return ConstVectorIterator(&reinterpret_cast<T*>(m_Buffer)[0]); }
+    ConstVectorIterator cbegin() const { return ConstVectorIterator(m_Buffer); }
 
-    inline ConstVectorIterator end() const { return ConstVectorIterator(&reinterpret_cast<T*>(m_Buffer)[m_Size]); }
+    ConstVectorIterator cend() const { return ConstVectorIterator(m_Buffer + m_Size); }
   private:
-    inline void ClearBuffer()
+    void ClearBuffer()
     {
       for (SizeType i = 0; i < m_Size; ++i)
-        reinterpret_cast<T*>(m_Buffer)[i].~T();
+        m_Buffer[i].~T();
     }
 
-    inline void TryReserve()
+    void TryReserve()
     {
       if (m_Size == m_Capacity)
-        Reserve((m_Capacity + 1) << 2);
+        Reserve((m_Capacity + 1) * 2);
     }
 
   private:
     AllocType m_Allocator{};
-    SizeType m_Size{};
-    SizeType m_Capacity{};
-    unsigned char* m_Buffer{};
+    SizeType m_Size{ 0 };
+    SizeType m_Capacity{ 0 };
+    T* m_Buffer{ nullptr };
   };
 }

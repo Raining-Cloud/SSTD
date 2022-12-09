@@ -2,7 +2,7 @@
 
 namespace SSTD
 {
-  //yet another wrapper
+  //I am not smart enough to implement a efficient data-strcuture on my own yet
 
   template<typename T>
   using Queue = std::queue<T>;
@@ -10,4 +10,3 @@ namespace SSTD
   template<typename T>
   using Dequeue = std::deque<T>;
 }
-
