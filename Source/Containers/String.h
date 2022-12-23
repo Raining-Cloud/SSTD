@@ -11,8 +11,6 @@ namespace SSTD
   public:
     using AllocType = A<CharType>;
 
-  public:
-
     explicit TString() : m_Allocator{} {}
 
     TString(SizeType capacity) : m_Allocator()
@@ -351,10 +349,7 @@ namespace SSTD
       SizeType msb_size : 1;
     };
 
-    enum
-    {
-      SSOSize = (sizeof(LongString) / sizeof(CharType))
-    };
+    static const size_t SSOSize = (sizeof(LongString) / sizeof(CharType));
 
     struct ShortString
     {

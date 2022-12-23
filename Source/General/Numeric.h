@@ -1,22 +1,22 @@
 #pragma once
 
+using int8 = signed char;
+using int16 = short;
+using int32 = int;
+using int64 = long long;
+
+using uint8 = unsigned char;
+using uint16 = unsigned short;
+using uint32 = unsigned int;
+using uint64 = unsigned long long;
+
+using double32 = double;
+using double64 = long double;
+
+using size_t = decltype(sizeof(void*));
+
 namespace SSTD
 {
-  using int8 = signed char;
-  using int16 = short;
-  using int32 = int;
-  using int64 = long long;
-
-  using uint8 = unsigned char;
-  using uint16 = unsigned short;
-  using uint32 = unsigned int;
-  using uint64 = unsigned long long;
-
-  using double32 = double;
-  using double64 = long double;
-
-  using size_t = decltype(sizeof(void*));
-
   template<typename T>
   struct IsNumeric { static constexpr bool valid = false; };
 

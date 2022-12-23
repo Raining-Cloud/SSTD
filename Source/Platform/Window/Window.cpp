@@ -5,14 +5,16 @@ namespace SSTD
   //////////////////////////////////////////////////////
   //                    GENERAL
   //////////////////////////////////////////////////////
-  auto Window::BeginEvents() const
+
+  const Window::WindowEventQueue Window::BeginEvents() const
   {
-    return m_EventQueue.cbegin();
+    return m_EventQueue;
   }
 
   void Window::EndEvents()
   {
-    m_EventQueue.Clear();
+    //Clear all the elements
+    m_EventQueue.Erase();
   }
 
   //////////////////////////////////////////////////////
@@ -20,6 +22,7 @@ namespace SSTD
   //////////////////////////////////////////////////////
 #ifdef PLATFORM_WIN64
 #include <windowsx.h>
+#include <dwmapi.h>
 
 #ifdef IsMinimized
 #undef IsMinimized
@@ -43,6 +46,8 @@ namespace SSTD
     wndc.lpfnWndProc = WndProcStatic;
     wndc.hInstance = hInstance;
     wndc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wndc.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
+    wndc.hIconSm = wndc.hIcon;
     wndc.lpszClassName = desc.title.CStr();
 
     if (!RegisterClassExA(&wndc))
@@ -64,6 +69,9 @@ namespace SSTD
       nullptr,
       hInstance,
       this); //this can cause trouble while moving!
+
+    COLORREF DARK_COLOR = RGB(m_Desc.titlebar_color.r, m_Desc.titlebar_color.g, m_Desc.titlebar_color.b);
+    DwmSetWindowAttribute(m_WindowHandle, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &DARK_COLOR, sizeof(DARK_COLOR));
 
     if (m_Desc.visible)
     {
@@ -123,6 +131,13 @@ namespace SSTD
   {
     SetWindowTextA(m_WindowHandle, title.CStr());
     m_Desc.title = title;
+  }
+
+  void Window::SetTitleBarColor(const Color& col)
+  {
+    m_Desc.titlebar_color = col;
+    COLORREF DARK_COLOR = RGB(col.r, col.g, col.b);
+    DwmSetWindowAttribute(m_WindowHandle, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &DARK_COLOR, sizeof(DARK_COLOR));
   }
 
   void* Window::GetNative()
@@ -303,7 +318,7 @@ namespace SSTD
       m_Desc.x = x; m_Desc.y = y;
       e = WindowEvent(EventType::Move);
       break;
-    case WM_MOUSEHWHEEL: //STODO: THIS IS NOT WORKING FIX NEEDED!!!
+    case WM_MOUSEWHEEL:
       e = WindowEvent(MouseWheelData{ .delta = GET_WHEEL_DELTA_WPARAM(wParam) });
       break;
     case WM_MOUSEMOVE:

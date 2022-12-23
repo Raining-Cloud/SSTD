@@ -75,3 +75,4 @@ add_library(${PROJECTNAME} STATIC ${general_sources} ${container_sources} ${math
 set_property(TARGET ${PROJECTNAME} PROPERTY LINKER_LANGUAGE CXX)
 set_property(TARGET ${PROJECTNAME} PROPERTY CXX_STANDARD 20)
 target_include_directories(${PROJECTNAME} PRIVATE ${SSTD_INCLUDE})
+target_link_libraries(${PROJECTNAME} INTERFACE "dwmapi.lib")

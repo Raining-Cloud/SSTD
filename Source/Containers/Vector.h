@@ -63,7 +63,7 @@ namespace SSTD
         if (m_Capacity != other.m_Capacity)
           Clear();
         else
-          ClearBuffer();
+          Erase();
 
       if (other.m_Capacity > 0 && m_Buffer == nullptr)
         m_Buffer = m_Allocator.Allocate(other.m_Size);
@@ -113,10 +113,18 @@ namespace SSTD
 
     void Clear()
     {
-      ClearBuffer();
+      Erase();
       m_Size = 0;
+      m_Capacity = 0;
       m_Allocator.Deallocate(m_Buffer);
       m_Buffer = nullptr;
+    }
+
+    void Erase()
+    {
+      for (SizeType i = 0; i < m_Size; ++i)
+        m_Buffer[i].~T();
+      m_Size = 0;
     }
 
     void Minimize()
@@ -242,15 +250,10 @@ namespace SSTD
 
     VectorIterator end() { return VectorIterator(m_Buffer + m_Size); }
 
-    ConstVectorIterator cbegin() const { return ConstVectorIterator(m_Buffer); }
+    ConstVectorIterator begin() const { return ConstVectorIterator(m_Buffer); }
 
-    ConstVectorIterator cend() const { return ConstVectorIterator(m_Buffer + m_Size); }
+    ConstVectorIterator end() const { return ConstVectorIterator(m_Buffer + m_Size); }
   private:
-    void ClearBuffer()
-    {
-      for (SizeType i = 0; i < m_Size; ++i)
-        m_Buffer[i].~T();
-    }
 
     void TryReserve()
     {

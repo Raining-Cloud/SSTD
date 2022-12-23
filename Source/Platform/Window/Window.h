@@ -9,8 +9,6 @@
 
 #include "WindowEvent.h"
 
-//The key is to isolate non-portable parts of the code from the main code base.
-
 namespace SSTD
 {
 
@@ -49,7 +47,8 @@ namespace SSTD
     bool maximizeable = true;
 
 
-    Color background_color = Colors::dark_grey;
+    Color background_color = Colors::DarkGrey;
+    Color titlebar_color = Colors::DarkGrey;
     WindowStyle window_style = WindowStyle::Normal;
     bool shadow = true;
 
@@ -64,13 +63,14 @@ namespace SSTD
   class Window
   {
   public:
-    //Init Values
+    using WindowEventQueue = Vector<WindowEvent>;
+
     explicit Window();
     Window(const WindowDesc& desc);
     ~Window();
 
     void Procces();
-    auto BeginEvents() const;
+    const WindowEventQueue BeginEvents() const;
     void EndEvents();
 
     void Realign(uint32 width, uint32 height, uint32 x, uint32 y);
@@ -90,6 +90,9 @@ namespace SSTD
 
     void SetBackgroundColor(const Color& col) { m_Desc.background_color = col; }
     Color GetBackgroundColor() { return m_Desc.background_color; }
+
+    void SetTitleBarColor(const Color& col);
+    Color GetTitleBarColor() { return m_Desc.titlebar_color; }
 
     void* GetNative();
 
@@ -115,7 +118,6 @@ namespace SSTD
 
     void Center();
   private:
-    using WindowEventQueue = Vector<WindowEvent>;
 #ifdef PLATFORM_WIN64
 
     LRESULT WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

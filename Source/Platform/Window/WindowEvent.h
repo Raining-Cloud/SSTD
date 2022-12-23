@@ -28,9 +28,8 @@ namespace SSTD
   };
 
 
-  struct DefaultData
+  struct None
   {
-    bool is_valid;
     static inline constexpr EventType type = EventType::None;
   };
 
@@ -124,9 +123,7 @@ namespace SSTD
     //ProTip: Use std::variant here ?
     union EventData
     {
-      EventData() : default_data() {} //default EventData basically contains nothing
-
-      DefaultData default_data;
+      None none{};
       FocusData focus_data;
       ResizeData resize_data;
       DPIData dpi_data;
