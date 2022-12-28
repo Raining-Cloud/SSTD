@@ -52,16 +52,16 @@ namespace SSTD
 
     explicit operator bool() const { return IsValid(); }
 
-    inline T* Get() const noexcept { return m_Ptr; }
+    T* Get() const noexcept { return m_Ptr; }
 
-    inline T* Release()
+    T* Release()
     {
       (*m_RefCount)--;
       m_RefCount = nullptr;
       return Exchange(m_Ptr, nullptr);
     }
 
-    inline void Clear() 
+    void Clear() 
     {
       if (m_Ptr)
       {
@@ -78,7 +78,7 @@ namespace SSTD
 
     constexpr bool IsValid() const { return m_Ptr != 0; }
 
-    inline SizeType GetRefCount() const { return m_RefCount ? (*m_RefCount) : 0; }
+    SizeType GetRefCount() const { return m_RefCount ? (*m_RefCount) : 0; }
 
   private:
 
@@ -115,9 +115,9 @@ namespace SSTD
 
     explicit operator bool() const { return IsValid(); }
 
-    inline T* Get() const noexcept { return m_Ptr; }
+    T* Get() const noexcept { return m_Ptr; }
 
-    inline T* Release()
+    T* Release()
     {
       return Exchange(m_Ptr, nullptr);
     }

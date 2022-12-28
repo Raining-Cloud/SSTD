@@ -119,7 +119,7 @@ namespace SSTD
     }
 
     ReturnValue operator()(Args... args) { return m_Callable->Invoke(Forward<Args>(args)...); }
-    inline ReturnValue Invoke(Args&&... args) { return m_Callable->Invoke(Forward<Args>(args)...); }
+    ReturnValue Invoke(Args&&... args) { return m_Callable->Invoke(Forward<Args>(args)...); }
 
     template<typename T>
     void Bind(T&& val)

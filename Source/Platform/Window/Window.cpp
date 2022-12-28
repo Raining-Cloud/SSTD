@@ -312,39 +312,38 @@ namespace SSTD
       e = WindowEvent(FocusData{ .is_focused = false });
       break;
     case WM_MOVE:
-      uint32 x, y;
-      x = static_cast<uint32>(LOWORD(lParam));
-      y = static_cast<uint32>(HIWORD(lParam));
-      m_Desc.x = x; m_Desc.y = y;
+    {
+      m_Desc.x = static_cast<uint32>(LOWORD(lParam));
+      m_Desc.y = static_cast<uint32>(HIWORD(lParam));
+
       e = WindowEvent(EventType::Move);
       break;
+    }
     case WM_MOUSEWHEEL:
       e = WindowEvent(MouseWheelData{ .delta = GET_WHEEL_DELTA_WPARAM(wParam) });
       break;
     case WM_MOUSEMOVE:
     {
-      int x = static_cast<short>(LOWORD(lParam));
-      int y = static_cast<short>(HIWORD(lParam));
-      e = WindowEvent(MouseMoveData{ .position = Vec2<uint32>(x,y) });
+      e = WindowEvent(MouseMoveData{ .x = static_cast<int32>(LOWORD(lParam)), .y = static_cast<int32>(HIWORD(lParam)) });
       break;
     }
     case WM_LBUTTONDOWN:
-      e = WindowEvent(MouseInputData{ .key = MouseCode::LeftMouse, .state = ButtonState::Pressed, .position = Vec2<uint32>(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) });
+      e = WindowEvent(MouseInputData{ .key = MouseCode::LeftMouse, .state = ButtonState::Pressed, .x = GET_X_LPARAM(lParam), .y = GET_Y_LPARAM(lParam) });
       break;
     case WM_LBUTTONUP:
-      e = WindowEvent(MouseInputData{ .key = MouseCode::LeftMouse, .state = ButtonState::Released, .position = Vec2<uint32>(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) });
+      e = WindowEvent(MouseInputData{ .key = MouseCode::LeftMouse, .state = ButtonState::Released, .x = GET_X_LPARAM(lParam), .y = GET_Y_LPARAM(lParam) });
       break;
     case WM_RBUTTONDOWN:
-      e = WindowEvent(MouseInputData{ .key = MouseCode::RightMouse, .state = ButtonState::Pressed, .position = Vec2<uint32>(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) });
+      e = WindowEvent(MouseInputData{ .key = MouseCode::RightMouse, .state = ButtonState::Pressed, .x = GET_X_LPARAM(lParam), .y = GET_Y_LPARAM(lParam) });
       break;
     case WM_RBUTTONUP:
-      e = WindowEvent(MouseInputData{ .key = MouseCode::RightMouse, .state = ButtonState::Released, .position = Vec2<uint32>(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) });
+      e = WindowEvent(MouseInputData{ .key = MouseCode::RightMouse, .state = ButtonState::Released, .x = GET_X_LPARAM(lParam), .y = GET_Y_LPARAM(lParam) });
       break;
     case WM_MBUTTONDOWN:
-      e = WindowEvent(MouseInputData{ .key = MouseCode::MiddleMouse, .state = ButtonState::Pressed, .position = Vec2<uint32>(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) });
+      e = WindowEvent(MouseInputData{ .key = MouseCode::MiddleMouse, .state = ButtonState::Pressed, .x = GET_X_LPARAM(lParam), .y = GET_Y_LPARAM(lParam) });
       break;
     case WM_MBUTTONUP:
-      e = WindowEvent(MouseInputData{ .key = MouseCode::MiddleMouse, .state = ButtonState::Released, .position = Vec2<uint32>(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) });
+      e = WindowEvent(MouseInputData{ .key = MouseCode::MiddleMouse, .state = ButtonState::Released, .x = GET_X_LPARAM(lParam), .y = GET_Y_LPARAM(lParam) });
       break;
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:

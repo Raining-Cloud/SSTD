@@ -162,7 +162,7 @@ namespace Experimental
       return *this;
     }
 
-    T& operator[](SizeType index) 
+    T& operator[](SizeType index)
     {
       Node* it = m_StartNode;
       for (SizeType i = 0; i < index; ++i)
@@ -171,7 +171,7 @@ namespace Experimental
       return it->data;
     }
 
-    T& const operator[](SizeType index) const 
+    T& const operator[](SizeType index) const
     {
       Node* it = m_StartNode;
       for (SizeType i = 0; i < index; ++i)

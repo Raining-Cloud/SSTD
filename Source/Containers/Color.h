@@ -31,12 +31,12 @@ namespace SSTD
 
   namespace Colors
   {
-    static inline const Color White = Color(0xFFFFFFFF);
-    static inline const Color Black = Color(0x000000FF);
-    static inline const Color Red = Color(0xFF0000FF);
-    static inline const Color Green = Color(0x00FF00FF);
-    static inline const Color blue = Color(0x0000FFFF);
-    static inline const Color DarkGrey = Color(0x202225FF);
+    static const Color White = Color(0xFFFFFFFF);
+    static const Color Black = Color(0x000000FF);
+    static const Color Red = Color(0xFF0000FF);
+    static const Color Green = Color(0x00FF00FF);
+    static const Color blue = Color(0x0000FFFF);
+    static const Color DarkGrey = Color(0x202225FF);
   }
 
 

@@ -21,7 +21,7 @@ namespace SSTD
     template<class U1, class U2>
     Pair& operator=(Pair<U1, U2>&& other) { first = Move(other.first); second = Move(other.second); return *this; }
 
-    inline bool operator==(const Pair& other) { return first == other.first && second == other.second; }
+    bool operator==(const Pair& other) { return first == other.first && second == other.second; }
 
     T1 first{};
     T2 second{};

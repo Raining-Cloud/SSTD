@@ -1,4 +1,4 @@
-#pragma once
+  #pragma once
 #include "Numeric.h"
 #include "Utility.h"
 
@@ -16,32 +16,6 @@ namespace SSTD
     static constexpr uint64 TB = 1099511627776;
     static constexpr uint64 PB = 1125899906842624;
   };
-
-  template<typename T>
-    requires IsTriviallyCopyable<T>::valid
-  static constexpr T* TMemCpy(T* dst, const T* src, size_t size)
-  {
-    //Copy bytewise is not th fastest but it will do the trick
-    char* d = reinterpret_cast<char*>(dst);
-    const char* s = reinterpret_cast<const char*>(src);
-
-    for (size_t i = 0; i < size; ++i)
-      d[i] = s[i];
-
-    return dst;
-  }
-
-  template<typename T>
-    requires (!IsTriviallyCopyable<T>::valid)
-  static constexpr T* TMemCpy(T* dst, T* src, size_t size)
-  {
-    for (size_t i = 0; i < size; ++i)
-    {
-      T& val = src[i];
-      new(dst + i) T(val);
-    }
-    return dst;
-  }
 
   namespace Bit
   {
@@ -100,5 +74,31 @@ namespace SSTD
     {
         return (val & ~(1UL << (sizeof(T) * 8 - 1UL))) | (bit << (sizeof(T) * 8 - 1UL));
     }
+  }
+
+  template<typename T>
+    requires IsTriviallyCopyable<T>::valid
+  static constexpr T* TMemCpy(T* dst, const T* src, size_t size)
+  {
+    //Copy bytewise is not th fastest but it will do the trick
+    char* d = reinterpret_cast<char*>(dst);
+    const char* s = reinterpret_cast<const char*>(src);
+
+    for (size_t i = 0; i < sizeof(T)*size; ++i)
+      d[i] = s[i];
+
+    return dst;
+  }
+
+  template<typename T>
+    requires (!IsTriviallyCopyable<T>::valid)
+  static constexpr T* TMemCpy(T* dst, T* src, size_t size)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      T& val = src[i];
+      new(dst + i) T(val);
+    }
+    return dst;
   }
 }

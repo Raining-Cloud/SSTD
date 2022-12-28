@@ -25,8 +25,8 @@ namespace SSTD
 
     ~Rect() {};
 
-    inline long Width() const { return (right - left); }
-    inline long Height() const { return (bottom - top); }
+    long Width() const { return (right - left); }
+    long Height() const { return (bottom - top); }
 
     T left;
     T right;

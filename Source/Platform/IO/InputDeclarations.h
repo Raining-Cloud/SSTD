@@ -147,8 +147,7 @@ namespace SSTD
   };
 
 #ifdef PLATFORM_WIN64
-  enum class KeyCode;
-  inline const KeyCode ToKeyCode(uint8 vkc)
+  static constexpr KeyCode ToKeyCode(uint8 vkc)
   {
     KeyCode k;
     switch (vkc)

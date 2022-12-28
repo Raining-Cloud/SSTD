@@ -12,12 +12,13 @@ namespace SSTD
     using SizeType = size_t;
     typedef T* Pointer;
 
-    inline explicit Allocator() throw() {}
-    inline explicit Allocator(const Allocator& other) {}
+    explicit Allocator() throw() {}
+    explicit Allocator(const Allocator& other) {}
+    
     template<typename N>
-    inline explicit Allocator(const Allocator<N>& other) {}
+    explicit Allocator(const Allocator<N>& other) {}
 
-    inline Pointer Allocate(size_t size)
+    Pointer Allocate(size_t size)
     {
       return static_cast<Pointer>(::operator new(size * sizeof(T)));
     }

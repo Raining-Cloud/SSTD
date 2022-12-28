@@ -30,77 +30,81 @@ namespace SSTD
 
   struct None
   {
-    static inline constexpr EventType type = EventType::None;
+    static constexpr EventType type = EventType::None;
   };
 
   struct FocusData
   {
     bool is_focused;
-    static inline constexpr EventType type = EventType::Focus;
+    static constexpr EventType type = EventType::Focus;
 
   };
 
-  struct  ResizeData
+  struct ResizeData
   {
     uint32 width;
     uint32 height;
-    static inline constexpr EventType type = EventType::Resize;
+    static constexpr EventType type = EventType::Resize;
   };
 
-  struct  DPIData
+  struct DPIData
   {
     float scale;
-    static inline constexpr EventType type = EventType::DPI;
+    static constexpr EventType type = EventType::DPI;
   };
 
-  struct  CharData
+  struct CharData
   {
     char c;
-    static inline constexpr EventType type = EventType::CharData;
+    static constexpr EventType type = EventType::CharData;
   };
 
-  struct  KeyboardInputData
+  struct KeyboardInputData
   {
     KeyCode key;
     ButtonState state;
-    static inline constexpr EventType type = EventType::KeyboardInput;
+    static constexpr EventType type = EventType::KeyboardInput;
   };
 
-  struct  MouseInputData
+  struct MouseInputData
   {
     MouseCode key;
     ButtonState state;
-    Vec2<uint32> position;
-    static inline constexpr EventType type = EventType::MouseInput;
+    int32 x;
+    int32 y;
+    static constexpr EventType type = EventType::MouseInput;
   };
 
-  struct  MouseMoveData
+  struct MouseMoveData
   {
-    Vec2<uint32> position;
-    static inline constexpr EventType type = EventType::MouseMove;
+    int32 x;
+    int32 y;
+    static constexpr EventType type = EventType::MouseMove;
   };
 
-  struct  MouseWheelData
+  struct MouseWheelData
   {
     short delta;
-    static inline constexpr EventType type = EventType::MouseWheel;
+    static constexpr EventType type = EventType::MouseWheel;
   };
 
-  struct  TouchData
+  struct TouchData
   {
     uint64 touch_id;
-    Vec2<uint32> local_pos;
-    Vec2<uint32> global_pos;
+    int32 local_x;
+    int32 local_y;
+    int32 global_x;
+    int32 global_y;
     bool changed;
-    static inline constexpr EventType type = EventType::Touch;
+    static constexpr EventType type = EventType::Touch;
   };
 
-  struct  GamepadData
+  struct GamepadData
   {
-    static inline constexpr EventType type = EventType::Gamepad;
+    static constexpr EventType type = EventType::Gamepad;
   };
 
-  class  WindowEvent
+  class WindowEvent
   {
   public:
     WindowEvent() : m_Type(EventType::None) {}
@@ -120,7 +124,6 @@ namespace SSTD
 
     EventType Type() const { return m_Type; }
 
-    //ProTip: Use std::variant here ?
     union EventData
     {
       None none{};

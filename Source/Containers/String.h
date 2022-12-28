@@ -315,22 +315,22 @@ namespace SSTD
 
   private:
 
-    inline SizeType GetShortSize() const
+    SizeType GetShortSize() const
     {
       return static_cast<SizeType>(SSOSize) - (m_Data.short_string.size >> 2);
     }
 
-    inline SizeType GetLongSize() const
+    SizeType GetLongSize() const
     {
       return Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.size), !m_Data.long_string.size);
     }
 
-    inline SizeType GetLongCapacity() const
+     SizeType GetLongCapacity() const
     {
       return Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.capacity), m_Data.long_string.msb_capacity);
     }
 
-    inline bool IsShort() const
+     bool IsShort() const
     {
       return !m_Data.long_string.msb_capacity & !m_Data.long_string.msb_size;
     }

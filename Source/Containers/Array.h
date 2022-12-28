@@ -5,19 +5,20 @@
 #include "General/Memory.h"
 namespace SSTD
 {
-  template<typename T, size_t StaticSize, IntegralType SizeType = size_t>
+  template<typename T, size_t StaticSize>
   class Array
   {
   public:
-    T& At(SizeType i) { return m_Array[i]; }
-    const T& At(SizeType i) const { return m_Array[i]; }
+    T& At(size_t i) { return m_Array[i]; }
+    const T& At(size_t i) const { return m_Array[i]; }
 
-    T& operator[](SizeType i) { return m_Array[i]; }
-    const T& operator[](SizeType i) const { return m_Array[i]; }
+    T& operator[](size_t i) { return m_Array[i]; }
+    const T& operator[](size_t i) const { return m_Array[i]; }
 
-    constexpr SizeType Size() const { return StaticSize; }
+    T* Data() const { return m_Array; }
+    constexpr size_t Size() const { return StaticSize; }
   private:
-    T m_Array[StaticSize];
+    T m_Array[StaticSize]{};
   };
 
   template<typename... T>
@@ -50,11 +51,11 @@ namespace SSTD
 
     template<typename Type>
       requires IsDifferentType<T, Type>
-    auto Get() { return m_Rest.get<Type>(); }
+    auto Get() { return m_Rest.Get<Type>(); }
 
     template<typename Type>
       requires IsDifferentType<T, Type>
-    auto Get() const { return m_Rest.get<Type>(); }
+    auto Get() const { return m_Rest.Get<Type>(); }
 
     template<typename Type>
       requires IsSameType<T, Type>
@@ -62,7 +63,7 @@ namespace SSTD
 
     template<typename Type>
       requires IsDifferentType<T, Type>
-    void Set(const Type& value) { m_Rest.set<Type>(value); }
+    void Set(const Type& value) { m_Rest.Set<Type>(value); }
 
     template<typename Lambda>
     void Apply(Lambda& lambda) { lambda(m_First); m_Rest.Apply<Lambda>(lambda); }
