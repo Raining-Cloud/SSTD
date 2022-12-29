@@ -221,9 +221,9 @@ namespace SSTD
 
     bool CheckIndex(const SizeType index) { return index < m_Size; }
 
-    T* GetBuffer() { return m_Buffer; }
+    T* Data() { return m_Buffer; }
 
-    const T* GetBuffer() const { return m_Buffer; }
+    const T* Data() const { return m_Buffer; }
 
     SizeType Size() const { return m_Size; }
 

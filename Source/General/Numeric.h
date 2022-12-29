@@ -10,9 +10,6 @@ using uint16 = unsigned short;
 using uint32 = unsigned int;
 using uint64 = unsigned long long;
 
-using double32 = double;
-using double64 = long double;
-
 using size_t = decltype(sizeof(void*));
 
 namespace SSTD
@@ -40,15 +37,12 @@ namespace SSTD
   template<>
   struct IsNumeric<uint64> { static constexpr bool valid = true; };
 
- //Float + Double
+ //Float, Double
   template<>
   struct IsNumeric<float> { static constexpr bool valid = true; };
 
   template<>
   struct IsNumeric<double> { static constexpr bool valid = true; };
-
-  template<>
-  struct IsNumeric<double64> { static constexpr bool valid = true; };
 
   template<typename T>
   struct NumericLimit { static constexpr uint32 value = 0; };
