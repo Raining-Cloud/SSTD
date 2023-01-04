@@ -3,6 +3,12 @@
 
 namespace SSTD
 {
+  template<typename T, T v>
+  struct Constant
+  {
+
+  };
+
   template<size_t SIZE, size_t MAX_SIZE>
   struct MaxSize {
     static constexpr bool valid = SIZE <= MAX_SIZE;
@@ -50,11 +56,4 @@ namespace SSTD
   template<size_t A, size_t B>
   concept IsGreaterEqual = (A >= B);
 
-  ////would be cool to find a way so we take a templated value T
-  //template<template<typename> typename A>
-  //concept AllocatorType = requires(A<uint32> a, size_t s)
-  //{
-  //  {a.Allocate(1)} -> IsSameType<uint32*>;
-  //  {a.Deallocate(nullptr)} -> IsSameType<void>;
-  //};
 }

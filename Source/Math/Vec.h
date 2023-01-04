@@ -3,6 +3,8 @@
 #include "Math.h"
 
 #include "General/Numeric.h"
+#include "General/Utility.h"
+#include "functional"
 
 namespace SSTD
 {
@@ -10,39 +12,79 @@ namespace SSTD
     requires(Dim > 0)
   struct Vec
   {
+    template<size_t ... Indices>
+    struct SwizzleProxy
+    {
+      SwizzleProxy(T* data) : ptr(data) {}
+
+      SwizzleProxy(const SwizzleProxy&) = delete;
+      SwizzleProxy(SwizzleProxy&&) = delete;
+
+      SwizzleProxy& operator=(const SwizzleProxy&) = delete;
+      SwizzleProxy& operator=(SwizzleProxy&&) = delete;
+
+      template<size_t ... XIndices>
+      SwizzleProxy<Indices...>& operator=(const SwizzleProxy<XIndices...>& other)
+        requires(sizeof...(Indices) == sizeof...(XIndices))
+      {
+        const T other_values[]{ other.ptr[XIndices]... };
+        size_t i = 0;
+        ((ptr[Indices] = other_values[i++]), ...);
+
+        return *this;
+      }
+
+      operator Vec<T, sizeof...(Indices)>() const { return Vec<T, sizeof...(Indices)>{ptr[Indices]...}; }
+
+    private:
+      T* ptr;
+    };
+
   public:
-    Vec() noexcept {}
-    explicit Vec(const T& value) noexcept : m_Buffer{ value } {}
+
+    Vec() {}
+    Vec(const T& value) noexcept { data = { value }; }
 
     template<typename ... Args>
       requires (sizeof...(Args) == Dim)
-    Vec(Args&&... args) : m_Buffer{ static_cast<T>(args)... } {}
+    Vec(Args&&... args) : data{ args... } {}
 
     template<size_t OtherDim>
-      requires IsLessEqual<Dim, OtherDim>
-    Vec(const Vec<T, OtherDim>& other) { TMemCpy(m_Buffer, other.Data(), Dim); }
-    
+      requires (Dim <= OtherDim)
+    Vec(const Vec<T, OtherDim>& other) 
+    { 
+      TMemCpy(data, other.data, Dim); 
+    }
 
-#define VEC_ACCESSOR_CHAR(c, idx)                                       \
-    T& c () requires(Dim > idx) { return m_Buffer[idx]; }               \
-    const T& c () const requires(Dim > idx) { return m_Buffer[idx]; }   \
-
-    VEC_ACCESSOR_CHAR(x, 0);
-    VEC_ACCESSOR_CHAR(y, 1);
-    VEC_ACCESSOR_CHAR(z, 2);
-    VEC_ACCESSOR_CHAR(w, 3);
+    Vec(const T arr[Dim]) { TMemCpy(data, arr, Dim); }
 
     const T& At(size_t index) const { if (index < Dim) return this->operator[](index); }
     T& At(size_t index) { if (index < Dim) return this->operator[](index); }
-    const T& operator[](size_t index) const { return m_Buffer[index]; }
-    T& operator[](size_t index) { return m_Buffer[index]; }
 
+    const T& operator[](size_t index) const { return data[index]; }
+    T& operator[](size_t index) { return data[index]; }
+
+
+    template<size_t Index>
+    constexpr auto Swizzle() requires (Dim >= Index)
+    {
+      return data[Index];
+    }
+
+    template<size_t ... Indices>
+    constexpr auto Swizzle() requires (sizeof...(Indices) > 1) && ((Dim >= Indices) && ...)
+    {
+      return SwizzleProxy<Indices...>{ data };
+    }
+
+#define VEC_SWIZZLE(op, ...)                                \
+    constexpr auto op() { return Swizzle<__VA_ARGS__>(); }  \
 
 #define VEC_OPERATOR_ASSIGNMENT(op)             \
     constexpr Vec& operator op(const Vec& other)\
     {                                           \
       for (size_t i = 0; i < Dim; ++i)          \
-        m_Buffer[i] op other.m_Buffer[i];       \
+        data[i] op other.data[i];               \
       return *this;                             \
     }                                           \
                                                 \
@@ -50,7 +92,7 @@ namespace SSTD
     constexpr Vec& operator op(const U& scalar) \
     {                                           \
       for (size_t i = 0; i < Dim; ++i)          \
-        m_Buffer[i] op static_cast<U>(scalar);  \
+        data[i] op static_cast<U>(scalar);      \
       return *this;                             \
     }                                           \
 
@@ -59,7 +101,7 @@ namespace SSTD
     {                                           \
       Vec out{};                                \
       for (size_t i = 0; i < Dim; ++i)          \
-        out.m_Buffer[i] = op m_Buffer[i];       \
+        out.data[i] = op data[i];               \
       return out;                               \
     }                                           \
 
@@ -69,7 +111,7 @@ namespace SSTD
     {                                                             \
       Vec out{};                                                  \
       for (size_t i = 0; i < Dim; ++i)                            \
-        out.m_Buffer[i] = m_Buffer[i] op other.m_Buffer[i];       \
+        out.data[i] = data[i] op other.data[i];                   \
       return out;                                                 \
     }                                                             \
                                                                   \
@@ -78,7 +120,7 @@ namespace SSTD
     {                                                             \
       Vec out{};                                                  \
       for (size_t i = 0; i < Dim; ++i)                            \
-        out.m_Buffer[i] = m_Buffer[i] op static_cast<T>(scalar);  \
+        out.data[i] = data[i] op static_cast<T>(scalar);          \
       return out;                                                 \
     }                                                             \
 
@@ -87,7 +129,7 @@ namespace SSTD
     {                                                             \
       Vec out{};                                                  \
       for (size_t i = 0; i < Dim; ++i)                            \
-        out.m_Buffer[i] = m_Buffer[i] op other.m_Buffer[i];       \
+        out.data[i] = data[i] op other.data[i];                   \
       return out;                                                 \
     }                                                             \
 
@@ -95,7 +137,7 @@ namespace SSTD
     constexpr Vec& operator op()                \
     {                                           \
       for (size_t i = 0; i < Dim; ++i)          \
-        op m_Buffer[i];                         \
+        op data[i];                             \
       return *this;                             \
     }                                           \
     constexpr Vec operator op(int)              \
@@ -104,6 +146,29 @@ namespace SSTD
       this->operator op();                      \
       return out;                               \
     }                                           \
+
+    VEC_SWIZZLE(x, 0);
+    VEC_SWIZZLE(y, 1);
+    VEC_SWIZZLE(z, 2);
+    VEC_SWIZZLE(w, 3);
+
+    VEC_SWIZZLE(xy, 0, 1);
+    VEC_SWIZZLE(yx, 1, 0);
+
+    VEC_SWIZZLE(xx, 0, 0);
+    VEC_SWIZZLE(yy, 1, 1);
+    VEC_SWIZZLE(zz, 2, 2);
+
+    VEC_SWIZZLE(xyz, 0, 1, 2);
+    VEC_SWIZZLE(xzy, 0, 2, 1);
+    VEC_SWIZZLE(yxz, 1, 0, 2);
+    VEC_SWIZZLE(yzx, 1, 2, 0);
+    VEC_SWIZZLE(zxy, 2, 0, 1);
+    VEC_SWIZZLE(zyx, 2, 1, 0);
+
+    VEC_SWIZZLE(xxx, 0, 0, 0);
+    VEC_SWIZZLE(yyy, 1, 1, 1);
+    VEC_SWIZZLE(zzz, 2, 2, 2);
 
     VEC_OPERATOR_ASSIGNMENT(+= );
     VEC_OPERATOR_ASSIGNMENT(-= );
@@ -114,51 +179,50 @@ namespace SSTD
     VEC_OPERATOR_UNARY(~);
     VEC_OPERATOR_UNARY(-);
 
-    VEC_OPERATOR_COMPARISON(==);
-    VEC_OPERATOR_COMPARISON(!=);
-    VEC_OPERATOR_COMPARISON(>=);
-    VEC_OPERATOR_COMPARISON(<=);
-    VEC_OPERATOR_COMPARISON(<);
-    VEC_OPERATOR_COMPARISON(>);
+    VEC_OPERATOR_COMPARISON(== );
+    VEC_OPERATOR_COMPARISON(!= );
+    VEC_OPERATOR_COMPARISON(>= );
+    VEC_OPERATOR_COMPARISON(<= );
+    VEC_OPERATOR_COMPARISON(< );
+    VEC_OPERATOR_COMPARISON(> );
 
     VEC_OPERATOR_BINARY(+);
     VEC_OPERATOR_BINARY(-);
     VEC_OPERATOR_BINARY(*);
-    VEC_OPERATOR_BINARY(/);
- 
+    VEC_OPERATOR_BINARY(/ );
+
     VEC_OPERATOR_INCDEC(++);
     VEC_OPERATOR_INCDEC(--);
 
-    constexpr T Sum() const 
+    constexpr T Sum() const
     {
       T out{ 0 };
       for (size_t i = 0; i < Dim; ++i)
-        out += m_Buffer[i];
+        out += data[i];
     }
 
     constexpr T Prod() const
     {
       T out{ 1 };
       for (size_t i = 0; i < Dim; ++i)
-        out *= m_Buffer[i];
+        out *= data[i];
     }
 
     constexpr T Length() const { return Math::Sqrt(SqrLength()); }
-    constexpr T SqrLength() const 
-    { 
+    constexpr T SqrLength() const
+    {
       T out{ 0 };
       for (size_t i = 0; i < Dim; ++i)
-        out += (m_Buffer[i] * m_Buffer[i]);
+        out += (data[i] * data[i]);
     }
 
     Vec& Normalize() const { return ((*this) / Length()); }
 
-    const T* Data() const { return &m_Buffer[0]; }
     constexpr size_t Size() { return Dim; }
-  private:
 
-    T m_Buffer[Dim]{};
+    T data[Dim]{};
   };
+
 
   template<typename T>
   using Vec2 = Vec<T, 2>;

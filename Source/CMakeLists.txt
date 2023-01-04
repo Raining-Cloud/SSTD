@@ -6,7 +6,7 @@ set(SSTD_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/")
 set(general_sources ${general_sources}
    General/Algorithm.h
    General/Allocator.h
-   General/Concepts.h 
+   General/Meta.h 
    General/Iterator.h
    General/Memory.h
    General/MulticastDelegate.h

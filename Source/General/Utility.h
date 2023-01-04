@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Concepts.h"
+#include "Meta.h"
 
 namespace SSTD
 {
@@ -40,6 +40,15 @@ namespace SSTD
     static constexpr bool valid = true;
   };
 
+  template<typename T>
+  struct IsReference { static constexpr bool valid = false; };
+
+  template<typename T>
+  struct IsReference<T&> { static constexpr bool valid = true; };
+
+  template<typename T>
+  struct IsReference<T&&> { static constexpr bool valid = true; };
+
   template <class T>
   static constexpr T&& Forward(typename RemoveReference<T>::Type& t) noexcept
   {
@@ -73,4 +82,6 @@ namespace SSTD
   {
     return static_cast<typename RemoveReference<T>::Type&&>(arg);
   }
+
+
 }
