@@ -10,9 +10,34 @@ There are several reasons why I want~~ed~~ to write my own standard template lib
 - As a **fun** programming project: Finally, writing an STL can simply be a fun and challenging programming project in and of itself. It can be a great way to improve my skills and deepen my understanding of C++.
 ## Features
 - ### General
+  - Sorting
+  - Iterators (May get moved into the Container's)
+  - Memory (TMemCpy, Bits and Bytes etc.)
+  - Allocator as default Allocator-Stucture
+  - Meta for templates/concepts etc.
+  - Numeric (IntegralTypes and Limits)
+  - Pattern (Idea of providing an Interface for Singelton and NonCopyable structures)
+  - Utility (Move, Forward etc.)
 - ### Containers
+  - Array
+  - Function
+  - Pair
+  - SmartPointer
+  - Queue (STD Wrapper)
+  - String
+  - Vector
 - ### Math
+  - Vector
+  - Matrices
 - ### Platform
+  - Threads
+  - Mutex
+  - Locks
+  - ConditionVariables
+  - Atomic (Integrals)
+  - (Application)Window
+  - Input
+  - Shared-Libary's
 ## Documentation
 For now there is none, working on it.
 ## Goals and Non-Goals

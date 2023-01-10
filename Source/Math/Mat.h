@@ -43,7 +43,7 @@ namespace SSTD
       return { data[n] };
     }
 
-    constexpr void SetRow(size_t n,const Vec<T, N>& vec)
+    constexpr void SetRow(size_t n, const Vec<T, N>& vec)
     {
       TMemCpy<T>(data[n], vec.data, N);
     }
@@ -53,7 +53,7 @@ namespace SSTD
       Vec<T, M> out{};
 
       for (size_t i = 0; i < M; i++)
-        new (out.data[i]) T{data[i][m]};
+        new (out.data[i]) T{ data[i][m] };
 
       return out;
     }
@@ -61,7 +61,7 @@ namespace SSTD
     constexpr Vec<T, M> SetColumn(size_t m, const Vec<T, M> vec)
     {
       for (size_t i = 0; i < M; i++)
-        new (data[i][m]) T{vec[i]};
+        new (data[i][m]) T{ vec[i] };
     }
 
     constexpr T& At(size_t m, size_t n)
@@ -72,13 +72,18 @@ namespace SSTD
         throw;
     }
 
-    constexpr AccsessProxy operator[](size_t m) { return AccsessProxy{data[m]}; }
+    constexpr AccsessProxy operator[](size_t m) { return AccsessProxy{ data[m] }; }
 
-    template<size_t XN>
-    Mat<T, M, XN> operator*(const Mat<T, N, XN>& other)
+    template<size_t P>
+    Mat<T, M, P> operator*(const Mat<T, N, P>& other)
     {
-      Mat<T, M, XN> out{};
-      throw "Not Implemented! Still on it";
+      Mat<T, M, P> out{};
+
+      for (size_t i = 0; i < M; i++)
+        for (size_t j = 0; j < P; j++)
+          for (size_t k = 0; k < N; k++)
+            out.data[i][j] += data[i][k] * other.data[k][j];
+
       return out;
     }
 
