@@ -1,0 +1,6 @@
+[submodule "Dependencies/googletest"]
+	path = Dependencies/googletest
+	url = https://github.com/google/googletest.git
+[submodule "Dependencies/benchmark"]
+	path = Dependencies/benchmark
+	url = https://github.com/google/benchmark.git
