@@ -136,5 +136,4 @@ namespace SSTD
     using Signed = int64;
     using Unsigned = uint64;
   };
-
 }

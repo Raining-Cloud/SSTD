@@ -19,7 +19,7 @@ namespace SSTD
       {
         m_Data.long_string.capacity = capacity;
         m_Data.long_string.msb_capacity = Bit::MSB(capacity);
-        m_Data.long_string.size = 0;
+        m_Data.long_string.MatSize = 0;
         m_Data.long_string.msb_size = ~0;
         m_Data.long_string.buffer = m_Allocator.Allocate(capacity);
       }
@@ -28,23 +28,23 @@ namespace SSTD
     template <SizeType N>
     constexpr TString(const CharType(&str)[N]) : TString(str, N - 1) {}
 
-    constexpr TString(const CharType* str, SizeType size)
+    constexpr TString(const CharType* str, SizeType MatSize)
     {
       if (str)
       {
-        if (size > SSOSize)
+        if (MatSize > SSOSize)
         {
-          size = Grow(size);
-          m_Data.long_string.size = m_Data.long_string.capacity = size;
+          MatSize = Grow(MatSize);
+          m_Data.long_string.MatSize = m_Data.long_string.capacity = MatSize;
           m_Data.long_string.msb_capacity = Bit::MSB(m_Data.long_string.capacity);
           m_Data.long_string.msb_size = ~m_Data.long_string.msb_capacity;
-          m_Data.long_string.buffer = m_Allocator.Allocate(size);
-          TMemCpy<CharType>(m_Data.long_string.buffer, str, size);
+          m_Data.long_string.buffer = m_Allocator.Allocate(MatSize);
+          TMemCpy<CharType>(m_Data.long_string.buffer, str, MatSize);
         }
         else
         {
-          m_Data.short_string.size = static_cast<CharType>((SSOSize - size) << 2);
-          TMemCpy<CharType>(m_Data.short_string.buffer, str, size);
+          m_Data.short_string.MatSize = static_cast<CharType>((SSOSize - MatSize) << 2);
+          TMemCpy<CharType>(m_Data.short_string.buffer, str, MatSize);
         }
       }
     }
@@ -53,19 +53,19 @@ namespace SSTD
     {
       if (other.IsShort())
       {
-        m_Data.short_string.size = other.m_Data.short_string.size;
+        m_Data.short_string.MatSize = other.m_Data.short_string.MatSize;
         TMemCpy<CharType>(m_Data.short_string.buffer, other.m_Data.short_string.buffer, other.GetShortSize());
       }
       else
       {
-        m_Data.long_string.size = other.m_Data.long_string.size;
+        m_Data.long_string.MatSize = other.m_Data.long_string.MatSize;
         m_Data.long_string.msb_size = other.m_Data.long_string.msb_size;
 
         m_Data.long_string.capacity = other.m_Data.long_string.capacity;
         m_Data.long_string.msb_capacity = other.m_Data.long_string.msb_capacity;
 
         m_Data.long_string.buffer = m_Allocator.Allocate(other.GetLongCapacity());
-        TMemCpy<CharType>(m_Data.long_string.buffer, other.m_Data.long_string.buffer, m_Data.long_string.size);
+        TMemCpy<CharType>(m_Data.long_string.buffer, other.m_Data.long_string.buffer, m_Data.long_string.MatSize);
       }
     }
 
@@ -77,7 +77,7 @@ namespace SSTD
       TMemCpy<uint8>(m_Data.raw_string, other.m_Data.raw_string, sizeof(LongString));
 
       other.m_Data.long_string.buffer = nullptr;
-      other.m_Data.long_string.size = 0;
+      other.m_Data.long_string.MatSize = 0;
       other.m_Data.long_string.msb_size = 0;
     }
 
@@ -112,13 +112,13 @@ namespace SSTD
       if (other.IsShort())
       {
         TMemCpy<CharType>(m_Data.short_string.buffer, other.m_Data.short_string.buffer, other.GetShortSize());
-        m_Data.short_string.size = other.m_Data.short_string.size;
+        m_Data.short_string.MatSize = other.m_Data.short_string.MatSize;
       }
       else
       {
         m_Data.long_string.capacity = other.m_Data.long_string.capacity;
         m_Data.long_string.msb_capacity = other.m_Data.long_string.msb_capacity;
-        m_Data.long_string.size = other.m_Data.long_string.size;
+        m_Data.long_string.MatSize = other.m_Data.long_string.MatSize;
         m_Data.long_string.msb_size = other.m_Data.long_string.msb_size;
         m_Data.long_string.buffer = m_Allocator.Allocate(m_Data.long_string.capacity);
         TMemCpy<CharType>(m_Data.long_string.buffer, other.m_Data.long_string.buffer, other.GetLongSize());
@@ -135,7 +135,7 @@ namespace SSTD
       TMemCpy<uint8>(m_Data.raw_string, other.m_Data.raw_string, sizeof(LongString));
 
       other.m_Data.long_string.buffer = nullptr;
-      other.m_Data.long_string.size = 0;
+      other.m_Data.long_string.MatSize = 0;
       other.m_Data.long_string.msb_size = 0;
 
       return *this;
@@ -179,48 +179,48 @@ namespace SSTD
     CharType& Back() { return IsShort() ? m_Data.short_string.buffer[GetShortSize()] : m_Data.long_string.buffer[GetLongSize()]; }
     const CharType& Back() const { return IsShort() ? m_Data.short_string.buffer[GetShortSize()] : m_Data.long_string.buffer[GetLongSize()]; }
 
-    void Resize(SizeType size)
+    void Resize(SizeType MatSize)
     {
       SizeType start_size = 0;
       if (IsShort())
       {
         start_size = GetShortSize();
-        if (size > SSOSize)
+        if (MatSize > SSOSize)
         {
-          auto temp = m_Allocator.Allocate(size);
+          auto temp = m_Allocator.Allocate(MatSize);
           TMemCpy<CharType>(temp, m_Data.short_string.buffer, GetShortSize());
           m_Data.long_string.buffer = temp;
-          m_Data.long_string.capacity = size;
-          m_Data.long_string.size = size;
-          m_Data.long_string.msb_capacity = Bit::MSB(size);
+          m_Data.long_string.capacity = MatSize;
+          m_Data.long_string.MatSize = MatSize;
+          m_Data.long_string.msb_capacity = Bit::MSB(MatSize);
           m_Data.long_string.msb_size = ~m_Data.long_string.msb_capacity;
         }
         else
         {
-          m_Data.short_string.size = (SSOSize - size) << 2;
-          m_Data.short_string.buffer[size] = NullTerminator;
+          m_Data.short_string.MatSize = (SSOSize - MatSize) << 2;
+          m_Data.short_string.buffer[MatSize] = NullTerminator;
         }
       }
       else
       {
         start_size = GetLongSize();
-        if (size > GetLongCapacity())
+        if (MatSize > GetLongCapacity())
         {
-          auto temp = m_Allocator.Allocate(size);
+          auto temp = m_Allocator.Allocate(MatSize);
           TMemCpy<CharType>(temp, m_Data.long_string.buffer, GetShortSize());
           m_Allocator.Deallocate(m_Data.long_string.buffer);
           m_Data.long_string.buffer = temp;
 
-          m_Data.long_string.capacity = size;
-          m_Data.long_string.msb_capacity = Bit::MSB(size);
-          m_Data.long_string.size = size;
+          m_Data.long_string.capacity = MatSize;
+          m_Data.long_string.msb_capacity = Bit::MSB(MatSize);
+          m_Data.long_string.MatSize = MatSize;
           m_Data.long_string.msb_size = ~m_Data.long_string.msb_capacity;
         }
         else
         {
-          m_Data.long_string.size = size;
-          m_Data.long_string.msb_size = ~Bit::MSB(size);
-          m_Data.long_string.buffer[size] = NullTerminator;
+          m_Data.long_string.MatSize = MatSize;
+          m_Data.long_string.msb_size = ~Bit::MSB(MatSize);
+          m_Data.long_string.buffer[MatSize] = NullTerminator;
         }
       }
     }
@@ -230,24 +230,24 @@ namespace SSTD
       if (IsShort())
       {
         SizeType c = Grow(SSOSize + capacity);
-        SizeType size = GetShortSize();
+        SizeType MatSize = GetShortSize();
 
         if (c < SSOSize) 
           return;
         auto temp = m_Allocator.Allocate(c);
-        TMemCpy<CharType>(temp, m_Data.short_string.buffer, size);
+        TMemCpy<CharType>(temp, m_Data.short_string.buffer, MatSize);
         
         
         m_Data.long_string.buffer = temp;
         m_Data.long_string.capacity = c;
         m_Data.long_string.msb_capacity = c;
-        m_Data.long_string.size = size;
-        m_Data.long_string.msb_size = ~Bit::MSB(size);
+        m_Data.long_string.MatSize = MatSize;
+        m_Data.long_string.msb_size = ~Bit::MSB(MatSize);
       }
       else
       {
         SizeType c = Grow(GetLongSize() + capacity);
-        SizeType size = GetLongSize();
+        SizeType MatSize = GetLongSize();
         if (c < SSOSize)
           return;
 
@@ -255,7 +255,7 @@ namespace SSTD
 
         TMemCpy<CharType>(temp, m_Data.long_string.buffer, GetLongSize());
         m_Allocator.Deallocate(m_Data.long_string.buffer);
-        m_Data.long_string.size = size;
+        m_Data.long_string.MatSize = MatSize;
 
         m_Data.long_string.buffer = temp;
         m_Data.long_string.capacity = c;
@@ -284,12 +284,12 @@ namespace SSTD
       if (IsShort())
       {
         TMemCpy<CharType>(m_Data.short_string.buffer + GetShortSize(), other.CStr(), s);
-        m_Data.long_string.size = GetShortSize() + s;
+        m_Data.long_string.MatSize = GetShortSize() + s;
       }
       else
       {
         TMemCpy<CharType>(m_Data.long_string.buffer + GetLongSize(), other.CStr(), s);
-        m_Data.long_string.size += s;
+        m_Data.long_string.MatSize += s;
       }
     }
 
@@ -300,7 +300,7 @@ namespace SSTD
 
     SizeType Size() const
     {
-      return IsShort() ? SSOSize - (m_Data.short_string.size >> 2) : Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.size), !m_Data.long_string.size);
+      return IsShort() ? SSOSize - (m_Data.short_string.MatSize >> 2) : Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.MatSize), !m_Data.long_string.MatSize);
     }
 
     SizeType Capacity() const
@@ -317,12 +317,12 @@ namespace SSTD
 
     SizeType GetShortSize() const
     {
-      return static_cast<SizeType>(SSOSize) - (m_Data.short_string.size >> 2);
+      return static_cast<SizeType>(SSOSize) - (m_Data.short_string.MatSize >> 2);
     }
 
     SizeType GetLongSize() const
     {
-      return Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.size), !m_Data.long_string.size);
+      return Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.MatSize), !m_Data.long_string.MatSize);
     }
 
      SizeType GetLongCapacity() const
@@ -345,7 +345,7 @@ namespace SSTD
       CharType* buffer;
       SizeType capacity : sizeof(SizeType) * 8 - 1;
       SizeType msb_capacity : 1;
-      SizeType size : sizeof(SizeType) * 8 - 1;
+      SizeType MatSize : sizeof(SizeType) * 8 - 1;
       SizeType msb_size : 1;
     };
 
@@ -354,7 +354,7 @@ namespace SSTD
     struct ShortString
     {
       CharType buffer[SSOSize - 1];
-      CharType size;
+      CharType MatSize;
     };
 
     union Data

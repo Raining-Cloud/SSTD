@@ -8,3 +8,4 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/Output/Bin")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_subdirectory(Source)
+add_subdirectory(Testing)

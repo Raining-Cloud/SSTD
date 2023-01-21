@@ -19,19 +19,19 @@ namespace SSTD
 
     Vector() noexcept {}
 
-    explicit Vector(SizeType size)
-      :m_Size(0), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(size))
+    explicit Vector(SizeType MatSize)
+      :m_Size(0), m_Capacity(MatSize), m_Allocator(), m_Buffer(m_Allocator.Allocate(MatSize))
     {}
 
-    Vector(const T& value, SizeType size)
-      :m_Size(size), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(size))
+    Vector(const T& value, SizeType MatSize)
+      :m_Size(MatSize), m_Capacity(MatSize), m_Allocator(), m_Buffer(m_Allocator.Allocate(MatSize))
     {
-      for (SizeType i = 0; i < size; ++i)
+      for (SizeType i = 0; i < MatSize; ++i)
         m_Allocator.Construct(m_Buffer + i, T{ value });
     }
 
-    Vector(const T* value, SizeType size)
-      : m_Size(size), m_Capacity(size), m_Allocator(), m_Buffer(m_Allocator.Allocate(size))
+    Vector(const T* value, SizeType MatSize)
+      : m_Size(MatSize), m_Capacity(MatSize), m_Allocator(), m_Buffer(m_Allocator.Allocate(MatSize))
     {
       for (SizeType i = 0; i < m_Size; ++i)
         m_Allocator.Construct(m_Buffer + i, T{ value[i] });
@@ -89,18 +89,18 @@ namespace SSTD
     T& operator[](const SizeType index) { return m_Buffer[index]; }
     const T& operator[](const SizeType index) const { return m_Buffer[index]; }
 
-    void Resize(const SizeType size)
+    void Resize(const SizeType MatSize)
     {
-      Reserve(size);//TODO: this is very not so gud
-      m_Size = size;
+      Reserve(MatSize);//TODO: this is very not so gud
+      m_Size = MatSize;
     }
 
-    void Reserve(const SizeType size)
+    void Reserve(const SizeType MatSize)
     {
-      if (size <= m_Capacity)
+      if (MatSize <= m_Capacity)
         return;
 
-      T* tmp = m_Allocator.Allocate(size);
+      T* tmp = m_Allocator.Allocate(MatSize);
 
       if (m_Buffer)
         TMemCpy<T>(tmp, m_Buffer, m_Size);
@@ -108,7 +108,7 @@ namespace SSTD
       m_Allocator.Deallocate(m_Buffer);
       m_Buffer = tmp;
 
-      m_Capacity = size;
+      m_Capacity = MatSize;
     }
 
     void Clear()
@@ -167,11 +167,11 @@ namespace SSTD
       m_Buffer[m_Size--].~T();
     }
 
-    void Append(const T* data, SizeType size)
+    void Append(const T* data, SizeType MatSize)
     {
-      Reserve(m_Size + size);
-      TMemCpy<T>(m_Buffer[m_Size], data, size);
-      m_Size += size;
+      Reserve(m_Size + MatSize);
+      TMemCpy<T>(m_Buffer[m_Size], data, MatSize);
+      m_Size += MatSize;
     }
 
     void Append(const Vector& other)

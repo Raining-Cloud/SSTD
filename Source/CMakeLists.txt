@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(PROJECTNAME "SSTD")
+set(PROJECTNAME "SSTDLib")
 set(SSTD_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/")
 
 set(general_sources ${general_sources}
@@ -9,7 +9,6 @@ set(general_sources ${general_sources}
    General/Meta.h 
    General/Iterator.h
    General/Memory.h
-   General/MulticastDelegate.h
    General/Numeric.h
    General/Pattern.h
    General/Utility.h
@@ -67,12 +66,14 @@ set(math_sources ${math_sources}
 
 set(experimental_sources ${experimental_sources}
    Experimental/List.h
+   Experimental/SIMD.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${general_sources} ${container_sources} ${math_sources} ${platform_sources} ${experimental_sources})
-
 add_library(${PROJECTNAME} STATIC ${general_sources} ${container_sources} ${math_sources} ${platform_sources} ${experimental_sources})
+
 set_property(TARGET ${PROJECTNAME} PROPERTY LINKER_LANGUAGE CXX)
 set_property(TARGET ${PROJECTNAME} PROPERTY CXX_STANDARD 20)
+
 target_include_directories(${PROJECTNAME} PRIVATE ${SSTD_INCLUDE})
 target_link_libraries(${PROJECTNAME} INTERFACE "dwmapi.lib")

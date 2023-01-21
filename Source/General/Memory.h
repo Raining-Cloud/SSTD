@@ -78,13 +78,13 @@ namespace SSTD
 
   template<typename T>
     requires IsTriviallyCopyable<T>::valid
-  static constexpr T* TMemCpy(T* dst, const T* src, size_t size)
+  static constexpr T* TMemCpy(T* dst, const T* src, size_t MatSize)
   {
     //Copy bytewise is not th fastest but it will do the trick
     char* d = reinterpret_cast<char*>(dst);
     const char* s = reinterpret_cast<const char*>(src);
 
-    for (size_t i = 0; i < sizeof(T)*size; ++i)
+    for (size_t i = 0; i < sizeof(T)*MatSize; ++i)
       d[i] = s[i];
 
     return dst;
@@ -92,9 +92,9 @@ namespace SSTD
 
   template<typename T>
     requires (!IsTriviallyCopyable<T>::valid)
-  static constexpr T* TMemCpy(T* dst, T* src, size_t size)
+  static constexpr T* TMemCpy(T* dst, T* src, size_t MatSize)
   {
-    for (size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < MatSize; ++i)
     {
       T& val = src[i];
       new(dst + i) T(val);

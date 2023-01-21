@@ -51,12 +51,12 @@ namespace SSTD
 
     template<size_t OtherDim>
       requires (Dim <= OtherDim)
-    Vec(const Vec<T, OtherDim>& other) 
-    { 
-      TMemCpy(data, other.data, Dim); 
+    Vec(const Vec<T, OtherDim>& other)
+    {
+      TMemCpy(data, other.data, Dim);
     }
 
-    Vec(const T arr[Dim]) { TMemCpy(data, arr, Dim); }
+    Vec(const T* arr) { TMemCpy(data, arr, Dim); }
 
     const T& At(size_t index) const { if (index < Dim) return this->operator[](index); }
     T& At(size_t index) { if (index < Dim) return this->operator[](index); }
@@ -208,6 +208,27 @@ namespace SSTD
         out *= data[i];
     }
 
+    constexpr T Dot(const Vec& other)
+    {
+      T out{};
+      for (size_t i = 0; i < Dim; i++)
+        out += data[i] * other.data[i];
+      return out;
+    }
+
+    constexpr auto Cross(const Vec& other)
+      requires (Dim < 4)
+    {
+      if constexpr (Dim == 2)
+        return x() * other.y() - other.x() * y();
+      else if constexpr (Dim == 3)
+        return {
+          (y() * other.z() - z() * other.y()),
+          (z() * other.x() - x() * other.z()),
+          (x() * other.y() - y() * other.x())
+      };
+    }
+
     constexpr T Length() const { return Math::Sqrt(SqrLength()); }
     constexpr T SqrLength() const
     {
@@ -223,7 +244,6 @@ namespace SSTD
     T data[Dim]{};
   };
 
-
   template<typename T>
   using Vec2 = Vec<T, 2>;
 
@@ -232,4 +252,10 @@ namespace SSTD
 
   template<typename T>
   using Vec4 = Vec<T, 4>;
+
+  template<typename T>
+  constexpr T Cross(const Vec2<T>& a, const Vec2<T>& b)
+  {
+    return a.x() * b.y() - a.x() * b.y();
+  }
 }

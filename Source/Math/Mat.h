@@ -3,6 +3,7 @@
 #include "General/Memory.h"
 #include "General/Numeric.h"
 #include "Vec.h"
+#include <new>
 
 namespace SSTD
 {
@@ -12,7 +13,6 @@ namespace SSTD
    v
    M
   */
-
 
   template<typename T, size_t M, size_t N>
   struct Mat
@@ -32,7 +32,7 @@ namespace SSTD
       T* ptr;
     };
   public:
-    static constexpr size_t size = N * M;
+    static constexpr size_t MatSize = N * M;
     explicit Mat() {}
 
     template<typename ... Args>
@@ -53,15 +53,15 @@ namespace SSTD
       Vec<T, M> out{};
 
       for (size_t i = 0; i < M; i++)
-        new (out.data[i]) T{ data[i][m] };
+        new (&out.data[i]) T{ data[i][m] };
 
       return out;
     }
 
-    constexpr Vec<T, M> SetColumn(size_t m, const Vec<T, M> vec)
+    constexpr void SetColumn(size_t m, const Vec<T, M> vec)
     {
       for (size_t i = 0; i < M; i++)
-        new (data[i][m]) T{ vec[i] };
+        new (&data[i][m]) T{ vec[i] };
     }
 
     constexpr T& At(size_t m, size_t n)
@@ -75,7 +75,7 @@ namespace SSTD
     constexpr AccsessProxy operator[](size_t m) { return AccsessProxy{ data[m] }; }
 
     template<size_t P>
-    Mat<T, M, P> operator*(const Mat<T, N, P>& other)
+    constexpr Mat<T, M, P> operator*(const Mat<T, N, P>& other)
     {
       Mat<T, M, P> out{};
 
@@ -84,6 +84,18 @@ namespace SSTD
           for (size_t k = 0; k < N; k++)
             out.data[i][j] += data[i][k] * other.data[k][j];
 
+      return out;
+    }
+
+    template<size_t Dim>
+      requires (Dim == M)
+    constexpr Vec<T, Dim> operator*(const Vec<T, Dim>& vec)
+    {
+      Vec<T, Dim> out{};
+      for (size_t i = 0; i < M; i++)
+        for (size_t j = 0; j < N; j++)
+          out[i] += data[i][j] * vec[i];
+      
       return out;
     }
 

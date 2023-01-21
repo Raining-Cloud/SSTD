@@ -18,9 +18,9 @@ namespace SSTD
     template<typename N>
     explicit Allocator(const Allocator<N>& other) {}
 
-    Pointer Allocate(size_t size)
+    Pointer Allocate(size_t MatSize)
     {
-      return static_cast<Pointer>(::operator new(size * sizeof(T)));
+      return static_cast<Pointer>(::operator new(MatSize * sizeof(T)));
     }
 
     void Deallocate(Pointer ptr)

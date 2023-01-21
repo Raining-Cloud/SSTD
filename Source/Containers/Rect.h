@@ -1,6 +1,9 @@
 #pragma once
 
 #include "General/Numeric.h"
+
+#define SSTD_RECT_OPERATION(op) 0
+
 namespace SSTD
 {
   template<typename T>
@@ -8,39 +11,19 @@ namespace SSTD
   struct Rect
   {
     Rect()
-      :left(0), right(0), top(0), bottom(0)
+      :left{}, right{}, top{}, bottom{}
     {}
 
-    Rect(long l, long r, long t, long b)
+    Rect(T l, T r, T t, T b)
       :left(l), right(r), top(t), bottom(b)
     {}
 
-    Rect(const Rect& other)
-      :left(other.left), right(other.right), top(other.top), bottom(other.bottom)
-    {}
-
-    Rect(Rect&& other)
-      :left(other.left), right(other.right), top(other.top), bottom(other.bottom)
-    {}
-
-    ~Rect() {};
-
-    long Width() const { return (right - left); }
-    long Height() const { return (bottom - top); }
+    T Width() const { return (right - left); }
+    T Height() const { return (bottom - top); }
 
     T left;
     T right;
     T top;
     T bottom;
   };
-
-  using Rect8 = Rect<int8>;
-  using Rect16 = Rect<int16>;
-  using Rect32 = Rect<int32>;
-  using Rect64 = Rect<int64>;
-
-  using uRect8 = Rect<uint8>;
-  using uRect16 = Rect<uint16>;
-  using uRect32 = Rect<uint32>;
-  using uRect64 = Rect<uint64>;
 }

@@ -3,6 +3,9 @@
 #include "General/Numeric.h"
 #include "General/Meta.h"
 
+#include <xmmintrin.h>
+#include <emmintrin.h>
+
 namespace SSTD
 {
   namespace Math
