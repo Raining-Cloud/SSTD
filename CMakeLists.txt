@@ -7,5 +7,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/Output/Bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/Output/Bin")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+add_subdirectory(Dependencies)
 add_subdirectory(Source)
 add_subdirectory(Testing)

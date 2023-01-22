@@ -1,4 +1,4 @@
-# SSTD (Snowing Standard Template Library)
+# SSTD (Snowing Standard Library)
 ## Disclaimer
 The SSTD is work in progress and is not intended for production use, I implement features as I need them. So it may contain bugs and lacks of features. Use at your own risk.
 ## Why?
