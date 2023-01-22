@@ -1,6 +1,6 @@
 #pragma once
 
-#include "General/Concepts.h"
+#include "General/Meta.h"
 #include "General/Allocator.h"
 #include "General/Memory.h"
 namespace SSTD
@@ -19,13 +19,5 @@ namespace SSTD
     constexpr size_t Size() const { return StaticSize; }
   private:
     T m_Array[StaticSize]{};
-  };
-
-  template<typename... T>
-  class TypeArray
-  {
-  public:
-    template<typename Lambda>
-    void Apply(Lambda& lambda) { return; }
   };
 }
