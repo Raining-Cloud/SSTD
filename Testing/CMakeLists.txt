@@ -6,7 +6,7 @@ set(PROJECTNAME "SSTDTests")
 
 #include new tests here!
 set(test_sources ${test_sources}
-    test_test.cpp
+    DefaultTest.cpp
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_sources})
