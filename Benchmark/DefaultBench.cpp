@@ -1,10 +1,25 @@
 #include <benchmark/benchmark.h>
+#include "Containers/Vector.h"
 
-static void BM_StringCreation(benchmark::State& state) {
+#include <vector>
+
+static void SSTDVector(benchmark::State& state) {
   for (auto _ : state)
-    std::string empty_string;
+  {
+    SSTD::Vector<int> v;
+    benchmark::DoNotOptimize(v);
+  }
 }
-// Register the function as a benchmark
-BENCHMARK(BM_StringCreation);
+
+static void STDVector(benchmark::State& state) {
+  for (auto _ : state)
+  {
+    std::vector<int> v;
+    benchmark::DoNotOptimize(v);
+  }
+}
+
+BENCHMARK(SSTDVector);
+BENCHMARK(STDVector);
 
 BENCHMARK_MAIN();

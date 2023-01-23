@@ -11,6 +11,7 @@ set(test_sources ${test_sources}
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_sources})
 add_executable(${PROJECTNAME} ${test_sources})
+set_property(TARGET ${PROJECTNAME} PROPERTY CXX_STANDARD 20)
 target_link_libraries(${PROJECTNAME} PUBLIC GTest::gtest_main)
 
 #don't forget to link the libary :D

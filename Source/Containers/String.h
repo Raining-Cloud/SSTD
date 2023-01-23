@@ -1,4 +1,5 @@
 #pragma once
+
 #include "General/Allocator.h"
 #include "General/Meta.h"
 #include "General/Memory.h"
