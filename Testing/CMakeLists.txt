@@ -11,5 +11,10 @@ set(test_sources ${test_sources}
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${test_sources})
 add_executable(${PROJECTNAME} ${test_sources})
-target_link_libraries(${PROJECTNAME} GTest::gtest_main)
+target_link_libraries(${PROJECTNAME} PUBLIC GTest::gtest_main)
+
+#don't forget to link the libary :D
+target_link_libraries(${PROJECTNAME} PUBLIC SSTDLib)
+target_include_directories(${PROJECTNAME} PUBLIC "${ENGINE_DEPENDENCIES_DIR}/SSTD/Source")
+
 gtest_discover_tests(${PROJECTNAME})
