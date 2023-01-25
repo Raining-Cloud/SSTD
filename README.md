@@ -1,4 +1,4 @@
-# SSTD (Snowing Standard Library)
+# SSTD (Snowing Standard/Template Library)
 ## Disclaimer
 The SSTD is work in progress and is not intended for production use, I implement features as I need them. So it may contain bugs and lacks of features. Use at your own risk.
 ## Why?
@@ -8,7 +8,7 @@ There are several reasons why I want~~ed~~ to write my own standard template lib
 - To add **new features**: The STL is a large and comprehensive library, but it may not include every data structure or algorithm that I need. By writing my own STL, I can add any missing features that I need.
 - To improve **compatibility** with other libraries: If I am using a library that has its own custom data structures and algorithms, I may want to write an STL implementation that is compatible with those data structures and algorithms to make it easier to use the two libraries together.
 - As a **fun** programming project: Finally, writing an STL can simply be a fun and challenging programming project in and of itself. It can be a great way to improve my skills and deepen my understanding of C++.
-## Features (Coming Soon)
+## Features
 - ### General
   - Sorting
   - Iterators (May get moved into the Container's)
@@ -35,9 +35,9 @@ There are several reasons why I want~~ed~~ to write my own standard template lib
   - Locks
   - ConditionVariables
   - Atomic (Integrals)
-  - (Application)Window
+  - WindowAPI
   - Input
-  - Shared-Libary's
+  - Shared-Libary Interface
 ## Documentation
 For now there is none, working on it.
 ## Goals and Non-Goals
@@ -46,14 +46,14 @@ For now there is none, working on it.
 To use this library, you will need to have [CMake](https://cmake.org/) (Version 3.20 or higher) installed on your system. Then, you can use the following steps to build and install the SSTD:
 
 ### Manual
-1. Clone the SSTD repository: `git clone https://github.com/Raining-Cloud/SSTD.git`
-2. Move into the SSTD directory: `cd sstd`
+1. Clone the SSTD repository: `git clone --recurse-submodules https://github.com/cameronmcnz/surface.git `
+2. Move into the SSTD directory: `cd SSTD`
 3. Create a build directory: `mkdir build`
 4. Move into the build directory: `cd build`
 5. Run CMake: `cmake ..`
 
 ### Windows
-Run the `GenerateProjectFiles.bat` script, to generate the Visual-Studio solution.
-ai
+1. Clone the SSTD repository: `git clone --recurse-submodules https://github.com/cameronmcnz/surface.git `
+2. Run the `GenerateProjectFiles.bat` script.
 ## Licence
 This library is licensed under the MIT License. Please see the [LICENSE](https://github.com/Raining-Cloud/SSTD/blob/main/LICENCE.txt) file for more details.
