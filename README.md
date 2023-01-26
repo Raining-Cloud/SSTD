@@ -46,14 +46,14 @@ For now there is none, working on it.
 To use this library, you will need to have [CMake](https://cmake.org/) (Version 3.20 or higher) installed on your system. Then, you can use the following steps to build and install the SSTD:
 
 ### Manual
-1. Clone the SSTD repository: `git clone --recurse-submodules https://github.com/cameronmcnz/surface.git `
+1. Clone the SSTD repository: `git clone --recurse-submodules https://github.com/Raining-Cloud/SSTD.git `
 2. Move into the SSTD directory: `cd SSTD`
 3. Create a build directory: `mkdir build`
 4. Move into the build directory: `cd build`
 5. Run CMake: `cmake ..`
 
 ### Windows
-1. Clone the SSTD repository: `git clone --recurse-submodules https://github.com/cameronmcnz/surface.git `
+1. Clone the SSTD repository: `git clone --recurse-submodules https://github.com/Raining-Cloud/SSTD.git `
 2. Run the `GenerateProjectFiles.bat` script.
 ## Licence
 This library is licensed under the MIT License. Please see the [LICENSE](https://github.com/Raining-Cloud/SSTD/blob/main/LICENCE.txt) file for more details.
