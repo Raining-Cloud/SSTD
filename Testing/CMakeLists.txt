@@ -16,6 +16,6 @@ target_link_libraries(${PROJECTNAME} PUBLIC GTest::gtest_main)
 
 #don't forget to link the libary :D
 target_link_libraries(${PROJECTNAME} PUBLIC SSTDLib)
-target_include_directories(${PROJECTNAME} PUBLIC "${ENGINE_DEPENDENCIES_DIR}/SSTD/Source")
+target_include_directories(${PROJECTNAME} PRIVATE "../Source")
 
 gtest_discover_tests(${PROJECTNAME})
