@@ -82,6 +82,4 @@ namespace SSTD
   {
     return static_cast<typename RemoveReference<T>::Type&&>(arg);
   }
-
-
 }

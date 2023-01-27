@@ -6,7 +6,7 @@ namespace SSTD
   template<typename T, T v>
   struct Constant
   {
-
+    static constexpr T value = v;
   };
 
   template<size_t SIZE, size_t MAX_SIZE>
@@ -55,5 +55,4 @@ namespace SSTD
 
   template<size_t A, size_t B>
   concept IsGreaterEqual = (A >= B);
-
 }

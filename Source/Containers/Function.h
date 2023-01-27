@@ -2,6 +2,8 @@
 #include "General/Utility.h"
 #include "General/Meta.h"
 
+#include "General/Exception.h"
+
 namespace SSTD
 {
   template<typename T>
@@ -119,7 +121,13 @@ namespace SSTD
     }
 
     ReturnValue operator()(Args... args) { return m_Callable->Invoke(Forward<Args>(args)...); }
-    ReturnValue Invoke(Args&&... args) { return m_Callable->Invoke(Forward<Args>(args)...); }
+    ReturnValue Invoke(Args&&... args) 
+    { 
+      if (m_Callable)
+        return m_Callable->Invoke(Forward<Args>(args)...); 
+
+      throw Exception();
+    }
 
     template<typename T>
     void Bind(T&& val)

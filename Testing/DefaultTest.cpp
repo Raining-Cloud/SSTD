@@ -3,5 +3,6 @@
 // Demonstrate some basic assertions.
 TEST(DefaultTest, BasicAssertions) {
   // Expect two strings not to be equal.
-  EXPECT_STREQ("This test is just a default test!", "This test is just a default test!");
+  const char* str = "This test is just a default test!";
+  EXPECT_STREQ(str, str);
 }

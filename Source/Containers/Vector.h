@@ -6,6 +6,8 @@
 #include "General/Meta.h"
 #include "General/Allocator.h"
 
+#include "General/Exception.h"
+
 namespace SSTD
 {
   template<typename T, IntegralType SizeType = size_t, template<typename> typename A = Allocator>
@@ -198,7 +200,7 @@ namespace SSTD
     T& At(const SizeType index)
     {
       if (index > m_Size)
-        throw;
+        throw Exception();
 
       return m_Buffer[index];
     }
@@ -206,7 +208,7 @@ namespace SSTD
     const T& At(const SizeType index) const
     {
       if (index > m_Size)
-        throw;
+        throw Exception();
 
       return m_Buffer[index];
     }

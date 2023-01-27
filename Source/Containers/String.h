@@ -4,6 +4,8 @@
 #include "General/Meta.h"
 #include "General/Memory.h"
 
+#include "General/Exception.h"
+
 namespace SSTD
 {
   template <typename CharType, CharType NullTerminator, typename SizeType = size_t, template<typename> typename A = Allocator>
@@ -148,13 +150,13 @@ namespace SSTD
       if (IsShort())
       {
         if (index > GetShortSize())
-          throw;
+          throw Exception();
         return m_Data.short_string.buffer[index];
       }
       else
       {
         if (index > GetLongSize())
-          throw;
+          throw Exception();
         return m_Data.long_string.buffer[index];
       }
     }
@@ -163,13 +165,13 @@ namespace SSTD
       if (IsShort())
       {
         if (index > GetShortSize())
-          throw;
+          throw Exception();
         return m_Data.short_string.buffer[index];
       }
       else
       {
         if (index > GetLongSize())
-          throw;
+          throw Exception();
         return m_Data.long_string.buffer[index];
       }
     }

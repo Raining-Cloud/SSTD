@@ -19,6 +19,11 @@ namespace SSTD
 
   namespace Bit
   {
+    struct Bit
+    {
+      uint8 value : 1;
+    };
+
     template<size_t N, IntegralType T>
     static constexpr bool Get(T val)
     {

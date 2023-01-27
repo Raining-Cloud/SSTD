@@ -12,6 +12,9 @@ set(general_sources ${general_sources}
    General/Numeric.h
    General/Pattern.h
    General/Utility.h
+   General/Exception.h
+   General/Error.h
+   General/Result.h
 )
 
 set(container_sources ${container_sources}
