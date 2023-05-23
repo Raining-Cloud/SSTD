@@ -9,64 +9,71 @@
 
 #include "Containers/Pair.h"
 
+#include <memory>
+
 namespace SSTD
 {
-  template <typename CharType, CharType NullTerminator, typename SizeType = size_t, template<typename> typename A = Allocator>
+  template <typename CharType, CharType NullTerminator, typename SizeType = size_t, template<typename> typename A = Allocator, typename G = GenericGrow>
   class TString
   {
   public:
     using AllocType = A<CharType>;
 
-    explicit TString(const AllocType& alloc = AllocType()) : m_Allocator{ alloc }
+    TString()
+      : m_Allocator{}
     {
-      SetStateData(StringState::Short, 1);
+      SetShortSize(0);
+    }
+
+    explicit TString(const AllocType& alloc)
+      : m_Allocator{ alloc }
+    {
+      SetShortSize(0);
     }
 
     TString(const CharType* str, SizeType size, const AllocType& alloc = AllocType())
-      : m_Allocator{ alloc }
+      :m_Allocator{ alloc }
     {
-      if (size > m_ShortStr.capacity)
+      if (size > m_Data.s.capacity)
       {
-        SetStateData(StringState::Long);
-        m_LongStr.buffer = TMemCpy<CharType>(m_Allocator.Allocate(size), str, size);
-        m_LongStr.capacity = size;
-        m_LongStr.size = size;
+        m_Data.l.buffer = TMemCpy<CharType>(m_Allocator.Allocate(size + 1), str, size);
+        m_Data.l.capacity = size;
+        SetLongSize(size);
       }
       else
       {
-        SetStateData(StringState::Short, size);
-        TMemCpy<CharType>(m_ShortStr.buffer, str, size);
+        TMemCpy<CharType>(m_Data.s.buffer, str, size);
+        SetShortSize(size);
       }
+
     }
 
     template <SizeType N>
-    constexpr TString(const CharType(&str)[N], const AllocType& alloc = AllocType()) :TString(str, N, alloc) {}
+    constexpr TString(const CharType(&str)[N], const AllocType& alloc = AllocType())
+      : TString(str, N - 1, alloc)
+    {}
 
     TString(const TString& other)
       : m_Allocator{ other.m_Allocator }
     {
-      const Pair<StringState, uint8> sdata = other.GetStateData();
-      if (sdata.first == StringState::Short)
+      if (other.GetState() == State::Short)
       {
-        TMemCpy<uint8>(m_RawStr.buffer, other.m_RawStr.buffer, sizeof(m_RawStr.buffer));
-        m_RawStr.state = other.m_RawStr.state;
+        m_Data = other.m_Data;
       }
-      else if (sdata.first == StringState::Long)
+      else
       {
-        SetStateData(StringState::Long);
-        m_LongStr.buffer = TMemCpy<CharType>(m_Allocator.Allocate(other.m_LongStr.size), other.m_LongStr.buffer, other.m_LongStr.size);
-        m_LongStr.capacity = other.m_LongStr.size;
-        m_LongStr.size = other.m_LongStr.size;
+        const SizeType size = other.GetLongSize();
+        m_Data.l.buffer = TMemCpy<CharType>(m_Allocator.Allocate(size + 1), other.m_Data.l.buffer, size);
+        m_Data.l.capacity = size;
+        SetLongSize(size);
       }
     }
 
-    TString(TString&& other) noexcept : m_Allocator{ Move(other.m_Allocator) }
+    TString(TString&& other) noexcept
+      : m_Data(other.m_Data)
     {
-
-      TMemCpy<uint8>(m_RawStr.buffer, other.m_RawStr.buffer, sizeof(m_RawStr.buffer));
-      m_RawStr.state = other.m_RawStr.state;
-      SetStateData(StringState::Short, 1);
-      other.m_ShortStr.buffer[0] = NullTerminator;
+      m_Data = other.m_Data;
+      other.SetShortSize(0);
     }
 
     ~TString()
@@ -74,9 +81,21 @@ namespace SSTD
       Clear();
     }
 
-    bool operator==(const TString& other)
+    bool operator==(const TString& other) const
     {
-      return false;
+      if (Size() != other.Size())
+        return false;
+
+      const CharType* a = CStr();
+      const CharType* b = other.CStr();
+
+      while ((*a != NullTerminator) && (*a == *b))
+      {
+        ++a;
+        ++b;
+      }
+
+      return (*a == *b);
     }
     bool operator!=(const TString& other)
     {
@@ -94,11 +113,23 @@ namespace SSTD
 
     TString& operator=(const TString& other)
     {
+      Clear();
+
       return *this;
     }
 
     TString& operator=(TString&& other) noexcept
     {
+      Clear();
+
+      m_Data = other.m_Data;
+      other.SetShortSize(0);
+      return *this;
+    }
+
+    TString& operator+=(const TString& other)
+    {
+      Append(other);
       return *this;
     }
 
@@ -112,147 +143,211 @@ namespace SSTD
       return operator[](index);
     }
 
-    CharType& Front() { }
-    const CharType& Front() const { }
+    CharType& Front() { return CStr()[0]; }
+    const CharType& Front() const { return CStr()[0]; }
 
-    CharType& Back() { }
-    const CharType& Back() const { }
+    CharType& Back() { return CStr()[Size()]; }
+    const CharType& Back() const { return CStr()[Size()]; }
 
-    void Resize(SizeType size, CharType value = '0')
+    void Resize(SizeType size, CharType fill = static_cast<CharType>('0'))
     {
+      Reserve(size);
+      const State state = GetState();
+      const SizeType old_size = Size();
+
+
+      for (SizeType i = old_size; i < size; i++)
+        CStr()[i] = fill;
+
+      if (state == State::Long)
+        SetLongSize(size);
+      else
+        SetShortSize(size);
 
     }
 
     void Reserve(SizeType capacity)
     {
-      if (capacity <= m_ShortStr.capacity)
+      const SizeType size = Size();
+      const CharType* cstr = CStr();
+      const SizeType cap = Capacity();
+
+      if (capacity <= cap)
         return;
 
-      CharType* cstr{};
-      SizeType size{};
+      const SizeType new_cap = (capacity + size) * 1.666;
+      CharType* tmp = TMemCpy<CharType>(m_Allocator.Allocate(new_cap + 1), cstr, size);
 
-      const Pair<StringState, uint8> sdata = GetStateData();
-      if (sdata.first == StringState::Short)
-      {
-        if (capacity < sdata.second)
-          return;
-        cstr = m_ShortStr.buffer;
-        size = sdata.second;
-      }
-      else if (sdata.first == StringState::Long)
-      {
-        if (capacity < m_LongStr.size)
-          return;
-        cstr = m_LongStr.buffer;
-        size = m_LongStr.size;
-      }
-      SetStateData(StringState::Long);
-      const SizeType new_cap = capacity + size;
+      if (cap > m_Data.s.capacity)
+        m_Allocator.Deallocate(m_Data.l.buffer);
 
-      CharType* tmp = m_Allocator.Allocate(new_cap);
-      TMemCpy<CharType>(tmp, cstr, size);
-      m_LongStr.buffer = tmp;
-      m_LongStr.size = size;
-      m_LongStr.capacity = new_cap;
+      m_Data.l.buffer = tmp;
+      m_Data.l.capacity = new_cap;
+      SetLongSize(size);
     }
 
     void Minimize()
     {
-      const Pair<StringState, uint8> sdata = GetStateData();
-      if (sdata.first == StringState::Long)
+      const SizeType size = Size();
+      const CharType* cstr = CStr();
+      const SizeType capacity = Capacity();
+
+      if ((capacity < m_Data.s.capacity) || (capacity == size)) //check if we actually need to allocate new heap memory
+        return;
+
+      CharType* tmp = TMemCpy<CharType>(m_Allocator.Allocate(size + 1), cstr, size);
+      m_Allocator.Deallocate(m_Data.l.buffer);
+
+      m_Data.l.buffer = tmp;
+      m_Data.l.capacity = size;
+      SetLongSize(size);
+    }
+
+    void Append(const TString& other)
+    {
+      Append(other.CStr(), other.Size());
+    }
+
+    void Append(const CharType* str, SizeType size)
+    {
+      const SizeType old_size = Size();
+      const SizeType new_size = size + old_size;
+
+      if (new_size <= m_Data.s.capacity)
       {
-        CharType tmp = m_Allocator.Allocate(m_LongStr.size);
-        TMemCpy<CharType>(tmp, m_LongStr.buffer, m_LongStr.size);
-        m_LongStr.capacity = m_LongStr.size;
+        TMemCpy<CharType>(m_Data.s.buffer + old_size, str, size);
+        SetShortSize(new_size);
+        return;
       }
+
+      CharType* tmp = TMemCpy<CharType>(m_Allocator.Allocate(new_size + 1), m_Data.l.buffer, old_size);
+      TMemCpy<CharType>(tmp + old_size, str, size);
+
+      if (old_size <= m_Data.s.capacity)
+        m_Allocator.Deallocate(m_Data.l.buffer);
+
+      m_Data.l.buffer = tmp;
+      m_Data.l.capacity = new_size;
+      SetLongSize(new_size);
     }
 
     void Clear()
     {
-      const Pair<StringState, uint8> sdata = GetStateData();
-      if (sdata.first == StringState::Long)
-        m_Allocator.Deallocate(m_LongStr.buffer);
-
-      SetStateData(StringState::Short, 1);
-      m_ShortStr.buffer[0] = NullTerminator;
+      const State state = GetState();
+      if (state == State::Long)
+        m_Allocator.Deallocate(m_Data.l.buffer);
+      SetShortSize(0);
     }
 
-    const CharType* CStr() const
+    CharType const* CStr() const
     {
-      const Pair<StringState, uint8> sdata = GetStateData();
-      if (sdata.first == StringState::Short)
-        return m_ShortStr.buffer;
-      else if (sdata.first == StringState::Long)
-        return m_LongStr.buffer;
+      const State state = GetState();
+      switch (state)
+      {
+      case State::Long:
+        return m_Data.l.buffer;
+      case State::Short:
+        return m_Data.s.buffer;
+      }
     }
 
     SizeType Size() const
     {
-      const Pair<StringState, uint8> sdata = GetStateData();
-      if (sdata.first == StringState::Short)
-        return sdata.second - 1;
-      else if (sdata.first == StringState::Long)
-        return m_LongStr.size - 1;
+      const State state = GetState();
+      switch (state)
+      {
+      case State::Long:
+        return GetLongSize();
+      case State::Short:
+        return GetShortSize();
+      }
     }
 
     SizeType Capacity() const
     {
-      const Pair<StringState, uint8> sdata = GetStateData();
-      if (sdata.first == StringState::Short)
-        return m_ShortStr.capacity;
-      else if (sdata.first == StringState::Long)
-        return m_LongStr.capacity - 1;
+      const State state = GetState();
+      switch (state)
+      {
+      case State::Long:
+        return m_Data.l.capacity;
+      case State::Short:
+        return m_Data.s.capacity;
+      }
     }
 
     bool IsEmpty() const
     {
-      return true;
+      return Size() == 0;
     }
 
-  private:
+    //private:
 
-    enum StringState : uint8
+    enum class State
     {
       Short = 0x00,
       Long = 0x01,
+      Mask = 0b11,
     };
-    static constexpr size_t StateMask = 0b11; // least two bits set to one
 
-    Pair<StringState, uint8> GetStateData() const
+    State GetState() const
     {
-      return { static_cast<StringState>(m_RawStr.state & StateMask), static_cast<uint8>(m_RawStr.state >> 2) };
+      return static_cast<State>(m_Data.s.state & static_cast<SizeType>(State::Mask));
     }
 
-    void SetStateData(const StringState state, uint8 data = 0)
+    //-----------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------
+
+    SizeType GetLongSize() const
     {
-      m_RawStr.state = (data << 2) | state;
+      return m_Data.l.size;
     }
 
-    union
+    void SetLongSize(SizeType size)
     {
-      struct LongStr
+      m_Data.s.state = static_cast<CharType>(State::Long);
+      m_Data.l.size = size;
+      m_Data.l.buffer[size] = NullTerminator;
+    }
+
+    //-----------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------
+
+    SizeType GetShortSize() const
+    {
+      return m_Data.s.capacity - (m_Data.s.state >> 2);
+    }
+
+    void SetShortSize(SizeType size)
+    {
+      m_Data.s.state = ((m_Data.s.capacity - size) << 2) | static_cast<CharType>(State::Short);
+      m_Data.raw[size + 1] = NullTerminator;
+    }
+
+    union TStringData
+    {
+      struct LongStr//this struct holds all the data for the representation of long strings (allocated on the heap), for providing the same acsess as in the short representation the size also sets the state 
       {
         CharType* buffer;
-        SizeType size;
         SizeType capacity;
-      private:
-        uint8 state;
-      } m_LongStr;
+        SizeType size;
+        uint8 padding; //this is ONLY for the calculation of the final size !
+      } l;
 
-      struct RawStr
+      struct ShortStr//this struct holds all the data for the small string which fit on the stack, we cannot easily set the size like in the long representation, so we need the size() function
       {
-        uint8 buffer[sizeof(LongStr) - 1]{0};
-        uint8 state{ 0 };
-      } m_RawStr{};
-
-      struct ShortStr
-      {
-        static constexpr size_t capacity = (sizeof(LongStr) - sizeof(StringState)) / sizeof(CharType);
+        static constexpr size_t capacity = (sizeof(LongStr) - sizeof(CharType)) / sizeof(CharType);
         CharType buffer[capacity];
-      } m_ShortStr;
-    };
+        CharType state;
+      } s;
 
-    [[msvc::no_unique_address]] AllocType m_Allocator;	//TODO: this is MSVC specific, we may need to work with different compilers at some point
+      CharType raw[sizeof(LongStr) / sizeof(CharType)];
+
+    } m_Data;
+
+    [[no_unique_address]] AllocType m_Allocator;
+
   };
 
   using String = TString<char, '\0'>;
