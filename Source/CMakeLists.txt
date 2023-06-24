@@ -13,7 +13,6 @@ set(general_sources ${general_sources}
    General/Pattern.h
    General/Utility.h
    General/Exception.h
-   General/Error.h
    General/Result.h
 )
 
@@ -69,7 +68,7 @@ set(math_sources ${math_sources}
 
 set(experimental_sources ${experimental_sources}
    Experimental/List.h
-   Experimental/SIMD.h
+   Experimental/Stack.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${general_sources} ${container_sources} ${math_sources} ${platform_sources} ${experimental_sources})
