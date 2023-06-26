@@ -1,43 +1,46 @@
 #pragma once
 
 #include "General/Numeric.h"
+#include "General/Meta.h"
 
 namespace SSTD
 {
+  template<IntegralType T>
   struct Color
   {
-    uint32 r;
-    uint32 g;
-    uint32 b;
-    uint8 a;
+    Color() = default;
+    Color(T r, T g, T b, T a = 1) : r(r), g(g), b(b), a(a) {}
 
-    Color() : r(0), g(0), b(0), a(255) {}
-    Color(uint32 pR, uint32 pG, uint32 pB, uint8 pA = 255) : r(pR), g(pG), b(pB), a(pA) {}
-    Color(uint32 hex) { FromHEX(hex); }
-    Color(const Color& other) : r(other.r), g(other.g), b(other.b), a(other.a) {}
+    bool operator==(const Color& other) { return r == other.r && g == other.g && b == other.b && a == other.a; };
+    bool operator!=(const Color& other) { return !(*this == other); };
 
-    void FromHEX(uint32 hex)
+    T& operator[](uint8 index)
     {
-      r = (hex & 0xFF000000) >> 24;
-      g = (hex & 0x00FF0000) >> 16;
-      b = (hex & 0x0000FF00) >> 8;
-      a = (hex & 0x000000FF) >> 4;
+      switch (index)
+      {
+      case 0:
+        return r;
+      case 1:
+        return g;
+      case 2:
+        return b;
+      case 3:
+        return a;
+      default:
+        return T{}; //result here?
+      }
     }
-    uint32 ToHEX()
+
+    struct
     {
-      return ((r & 0xFF) << 24) + ((g & 0xFF) << 16) + ((b & 0xFF) << 8) + (a & 0xFF);
-    }
+      T r{};
+      T g{};
+      T b{};
+      T a{};
+    };
   };
 
-  namespace Colors
-  {
-    static const Color White = Color(0xFFFFFFFF);
-    static const Color Black = Color(0x000000FF);
-    static const Color Red = Color(0xFF0000FF);
-    static const Color Green = Color(0x00FF00FF);
-    static const Color blue = Color(0x0000FFFF);
-    static const Color DarkGrey = Color(0x202225FF);
-  }
-
-
+  using Color8 = Color<uint8>;
+  using Color16 = Color<uint16>;
+  using Color32 = Color<uint32>;
 }

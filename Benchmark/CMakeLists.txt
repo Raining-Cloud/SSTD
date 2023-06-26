@@ -4,8 +4,11 @@ set(PROJECTNAME "SSTDBench")
 
 #include new tests here!
 set(bench_sources ${bench_sources}
-    DefaultBench.cpp
-    VectorBench.cpp
+    main.cpp
+    ToggleBenchmark.h
+    DefaultBench.h
+    VectorBench.h
+    StringBench.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bench_sources})

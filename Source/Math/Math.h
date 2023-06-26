@@ -5,6 +5,7 @@
 
 #include <xmmintrin.h>
 #include <emmintrin.h>
+#include <math.h>
 
 namespace SSTD
 {
@@ -49,9 +50,9 @@ namespace SSTD
       }
     }
 
-    static constexpr double Sqrt(double val)
+    static double Sqrt(double value)
     {
-      return 0;
+      return sqrt(value);
     }
 
     static constexpr uint32 Log2(uint32 val)

@@ -1,58 +1,43 @@
 #pragma once
-#include "Numeric.h"
-#include "Utility.h"
+#include "General/Numeric.h"
+#include "General/Utility.h"
 
 namespace SSTD
 {
-  struct SortTypeInsertion 
+  namespace SortType
   {
-  public:
-    template<class ContainerIterator, typename CompareFunction>
-    void Sort(ContainerIterator first, ContainerIterator last, CompareFunction func)
+    struct Insertion
     {
-      if (first == last)
-        return;
-
-      auto cur = first;
-      cur++;
-
-      //iterate all elements!
-      while (cur != last)
+      template<typename ContainerIterator, typename CompareFunction>
+      constexpr void Sort(ContainerIterator begin, ContainerIterator end, CompareFunction func)
       {
-        auto comp = Move(*cur);
+        if (begin == end)
+          return;
 
-        auto pos = cur;
-        //check until we found n-1 < n < n+1
-        while (pos != first)
+        for (auto i = begin + 1; i < end; ++i)
         {
-          auto left = pos;
-          --left;
-          if (!func(comp, *left))
-            break;
-
-          *pos = Move(*left);
-          pos = Move(left);
+          auto key = *i;
+          auto j = i - 1;
+          while (j >= begin && func(*j, key))
+          {
+            *(j + 1) = *j;
+            --j;
+          }
+          *(j + 1) = key;
         }
-        if (pos != cur)
-          *pos = Move(comp);
-        cur++;
       }
-    }
 
-    template<typename SizeType = uint32>
-    SizeType getComplexity(SizeType n) const { return n ^ 2; }
+      static constexpr bool stable = true;
+    };
+  }
 
-    const bool isStable = false;
-  protected:
-  };
-
-  template<class SortType = SortTypeInsertion, class ContainerIterator, class CompareFunction>
+  template<class SortType = SortType::Insertion, class ContainerIterator, class CompareFunction>
   static constexpr void Sort(ContainerIterator first, ContainerIterator last, CompareFunction cond)
   {
     auto s = SortType(); s.Sort(first, last, cond);
   }
 
-  template<class SortType = SortTypeInsertion, class ContainerIterator>
+  template<class SortType = SortType::Insertion, class ContainerIterator>
   static constexpr void Sort(ContainerIterator first, ContainerIterator last)
   {
     auto s= SortType(); s.Sort(first, last,
@@ -61,14 +46,12 @@ namespace SSTD
       });
   }
 
-  struct HashTypeMD5
+  template<typename SrcIterator, typename DstIterator, typename Size>
+  static constexpr DstIterator Copy(SrcIterator src, DstIterator dst, Size n)
   {
-
-  };
-
-  template<class HashType = HashTypeMD5>
-  static constexpr void Hash()
-  {
-
+    *(dst++) = *src;
+    for (Size i = 0; i < n; ++i)
+      *dst++ = *(++src);
+    return dst;
   }
 }

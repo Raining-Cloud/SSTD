@@ -2,15 +2,20 @@
 
 #include "General/Pattern.h"
 #include "General/Utility.h"
+#include "General/Allocator.h"
 
 namespace SSTD
 {
   template<typename T, IntegralType SizeType = size_t>
   class SharedPointer
   {
+     
   public:
     SharedPointer() :m_Ptr(nullptr), m_RefCount(nullptr) {}
-    SharedPointer(T* ptr) : m_Ptr(ptr), m_RefCount(new SizeType(1)) {}
+    explicit SharedPointer(T* ptr) : m_Ptr(ptr), m_RefCount(new SizeType(1)) 
+    {
+      
+    }
     SharedPointer(const SharedPointer& other)
       : m_Ptr(other.m_Ptr), m_RefCount(other.m_RefCount)
     {
@@ -24,31 +29,36 @@ namespace SSTD
       other.m_RefCount = nullptr;
     }
 
-    template<typename ... Args>
-    SharedPointer(Args... args)
-      : m_RefCount(new SizeType(1))
-    {
-      m_Ptr = new T(args...);
-    }
-
     ~SharedPointer() { Clear(); }
 
     void operator=(const SharedPointer& other) 
-    { 
-      Clear();
-      m_Ptr = other.m_Ptr;
-      m_RefCount = other.m_RefCount;
-      (*m_RefCount)++;
+    {
+      if (other.m_Ptr != m_Ptr)
+      {
+        Clear();
+        m_Ptr = other.m_Ptr;
+        m_RefCount = other.m_RefCount;
+        (*m_RefCount)++;
+      }
     }
     void operator=(SharedPointer&& other) 
     {
-      Clear();
-      m_Ptr = Exchange(other.m_Ptr, nullptr);
-      m_RefCount = Exchange(other.m_RefCount, nullptr);
+      if (other.m_Ptr != m_Ptr)
+      {
+        Clear();
+        m_Ptr = Exchange(other.m_Ptr, nullptr);
+        m_RefCount = Exchange(other.m_RefCount, nullptr);
+      }
     }
 
     T* operator->() const { return m_Ptr; }
     T& operator*() const { return *(m_Ptr); }
+
+    bool operator==(const T* ptr) { return m_Ptr == ptr; };
+    bool operator!=(const T* ptr) { return !(*this == ptr);};
+
+    bool operator==(const SharedPointer& other) { return m_Ptr == other.m_Ptr && m_RefCount == other.m_RefCount; }
+    bool operator!=(const SharedPointer& other) { return !(*this == other); }
 
     explicit operator bool() const { return IsValid(); }
 
@@ -76,32 +86,27 @@ namespace SSTD
       }
     }
 
-    constexpr bool IsValid() const { return m_Ptr != 0; }
+    bool IsValid() const { return m_Ptr != 0; }
 
     SizeType GetRefCount() const { return m_RefCount ? (*m_RefCount) : 0; }
 
   private:
-
     T* m_Ptr;
     SizeType* m_RefCount;
   };
 
   template<typename T>
-  class UniquePointer : NonCopyable
+  class UniquePointer : public NonCopyable
   {
   public:
     explicit UniquePointer() : m_Ptr(nullptr) {}
     UniquePointer(T* ptr) : m_Ptr(ptr) {}
     UniquePointer(UniquePointer&& other) noexcept : m_Ptr(other.m_Ptr) { other.m_Ptr = nullptr; }
-
-    template<typename ... Args>
-    UniquePointer(Args ... args) { m_Ptr = new T(Forward<Args...>(args...)); }
-
     ~UniquePointer() { Clear(); }
 
     UniquePointer& operator=(UniquePointer&& other) noexcept
     {
-      if (this == other)
+      if (*this == other)
         return *this;
 
       Clear();
@@ -109,6 +114,12 @@ namespace SSTD
       m_Ptr = other.m_Ptr;
       other.m_Ptr = nullptr;
     }
+
+    bool operator==(const T* ptr) { return m_Ptr == ptr; }
+    bool operator!=(const T* ptr) { return !(*this == ptr); }
+
+    bool operator==(const UniquePointer& other) { return m_Ptr == other.m_Ptr; }
+    bool operator!=(const UniquePointer& other) { return !(*this == other); }
 
     T* operator->() const { return m_Ptr; }
     T& operator*() const { return *(m_Ptr); }
@@ -129,9 +140,19 @@ namespace SSTD
       m_Ptr = nullptr;
     }
 
-    constexpr bool IsValid() const { return m_Ptr != nullptr; }
+    bool IsValid() const { return m_Ptr != nullptr; }
 
   private:
     T* m_Ptr;
   };
+
+  template<typename T, typename ... Args>
+  static constexpr SharedPointer<T> MakeShared(Args&&... args)
+  {
+  }
+
+  template<typename T, typename ... Args>
+  static constexpr UniquePointer<T> MakeUnique(Args&&... args)
+  {
+  }
 }

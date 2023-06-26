@@ -78,7 +78,7 @@ namespace SSTD
       T* obj;
     };
 
-    template<typename T, const ReturnValue(T::* Func)(Args...)>
+    template<typename T, ReturnValue(T::* Func)(Args...) const>
     struct CallableConstMember : public ICallable
     {
       static const bool HasAlloc = false;
@@ -112,7 +112,7 @@ namespace SSTD
       m_Callable = other.m_Callable->Copy(&m_Buffer);
       return *this;
     }
-    Function& operator=(Function&& other) noexcept 
+    Function& operator=(Function&& other) noexcept
     {
       Clear();
       m_Callable = other.m_Callable->Move(&m_Buffer);
@@ -121,10 +121,10 @@ namespace SSTD
     }
 
     ReturnValue operator()(Args... args) { return m_Callable->Invoke(Forward<Args>(args)...); }
-    ReturnValue Invoke(Args&&... args) 
-    { 
+    ReturnValue Invoke(Args&&... args)
+    {
       if (m_Callable)
-        return m_Callable->Invoke(Forward<Args>(args)...); 
+        return m_Callable->Invoke(Forward<Args>(args)...);
 
       throw Exception();
     }
@@ -137,20 +137,20 @@ namespace SSTD
     }
 
     template<ReturnValue(*Func)(Args...)>
-    void Bind() 
+    void Bind()
     {
       Clear();
       Construct<CallableGlobal<Func>>();
     }
 
     template<typename T, ReturnValue(T::* Func)(Args...)>
-    void Bind(T* obj) 
+    void Bind(T* obj)
     {
       Clear();
       Construct<CallableMember<T, Func>>(obj);
     }
 
-    template<typename T, const ReturnValue(T::* Func)(Args...)>
+    template<typename T, ReturnValue(T::* Func)(Args...) const>
     void Bind(const T& obj)
     {
       Clear();
@@ -196,6 +196,11 @@ namespace SSTD
         m_Callable->Delete();
         m_Callable = nullptr;
       }
+    }
+
+    bool IsBound() const
+    {
+      return (m_Callable != nullptr);
     }
 
   private:

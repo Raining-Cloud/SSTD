@@ -9,6 +9,20 @@
 
 namespace BenchString
 {
+  static constexpr const char* bench_data[] = {
+    "cg",
+    "zmcw",
+    "ozawqxwd",
+    "itynjrfzfojmlnwp",
+    "gwikmpgmpvegybjdtrujjcyobbsrjpgo",
+    "fjbqbacqnoeegmhperbfiygxcocgewyqxebbfyacbomvdfvbfitkwfyfuplnncov",
+    "tmmwjullgkykopcqfmolfjrqswqnxuxdgkpchrcnuuwufnrppupntcanagkerclbokcnaxrdzwyanpuxwfowyghburcrquljogucmndmytuxoqgklgypakpjyclxqpdm",
+    "eyucbjceusjtnpxpunkkntfhpnuhkrxmmrtkcnlgyesvaiylludaolzaztwwtudzygpwpeuygrgbsmhcqdvxwqpfniwupbqgisgwfdguamffvfqybcdtkioplajxalwumcfzdjsgpznhahelyxaaxqrwhtzocixlasdtxvpkaylqfvciinklcgwdkjctigpdmcipllqyuizzhmbqxywrrgesevgsihmtkrbvxbmdjqindqhitmjonopmgfsaysxu",
+    "piyhhsffxygyjuvvhqfgwiiwnlstgdgbgjmkrewpapekvezfvqgxzrgizmdhopebzxxnmjlbefunjyaludyfbtoytqlguquhncfageflpzzdyypknyuugdpwfeunmvmwgaoijougpudvqfsftiurpfazjlvfcwlfoipexedkzuwqmfoeijivqnavatfegqmnhckwgtlyepybddcwohckvivlzbaejwsecozcckpmqdunquzpncoinkyumqkaubmxejadiobmrdwcxwhnwfweebnzuvzktjntlrbdaujhyxecmnqpksedabnnixsoodbkrzqscxrarbyhvhytkbtieceluorqbjbvmgaheujphnbojxtqtrzhfqbnowqwawbcgemhpgehxmrmnatdsqsjletpjnqeqggjrqgpcjbdhobepbhdvrljuznuplquudnnpecdoiitrtxdxlsswapwrkqahgvkcalsxoljtkauuaymveiztxhnwldbaqkqahin"
+  };
+
+  static constexpr size_t bench_size = (sizeof(bench_data) / sizeof(const char*)) -1;
+
   static void ConstructorEmpty(benchmark::State& state)
   {
     for (auto _ : state)
@@ -18,41 +32,34 @@ namespace BenchString
     }
   }
 
-  static void Constructor10(benchmark::State& state)
+  static void Constructor(benchmark::State& state)
   {
     for (auto _ : state)
     {
-      SSTD::String s(BENCH_STRING10);
+      SSTD::String s(bench_data[state.range(0)]);
       benchmark::DoNotOptimize(s);
     }
   }
 
-  static void Constructor31(benchmark::State& state)
+  static void CopyConstructor(benchmark::State& state)
   {
+    SSTD::String s(bench_data[state.range(0)]);
+    benchmark::DoNotOptimize(s);
     for (auto _ : state)
     {
-      SSTD::String s(BENCH_STRING31);
-      benchmark::DoNotOptimize(s);
-    }
-  }
-
-  static void CopyConstructor31(benchmark::State& state)
-  {
-    for (auto _ : state)
-    {
-      SSTD::String s(BENCH_STRING31);
       SSTD::String s2(s);
-      benchmark::DoNotOptimize(s);
       benchmark::DoNotOptimize(s2);
     }
   }
 
-  static void Constructor64(benchmark::State& state)
+  static void MoveConstructor(benchmark::State& state)
   {
+    SSTD::String s(bench_data[state.range(0)]);
+    benchmark::DoNotOptimize(s);
     for (auto _ : state)
     {
-      SSTD::String s(BENCH_STRING64);
-      benchmark::DoNotOptimize(s);
+      SSTD::String s2(Move(s));
+      benchmark::DoNotOptimize(s2);
     }
   }
 
@@ -75,41 +82,36 @@ namespace BenchString
       }
     }
 
-    static void Constructor10(benchmark::State& state)
+    static void Constructor(benchmark::State& state)
     {
       for (auto _ : state)
       {
-        std::string s(BENCH_STRING10);
+        std::string s(bench_data[state.range(0)]);
         benchmark::DoNotOptimize(s);
       }
     }
 
-    static void Constructor31(benchmark::State& state)
+    static void CopyConstructor(benchmark::State& state)
     {
-      for (auto _ : state)
-      {
-        SSTD::String s(BENCH_STRING31);
-        benchmark::DoNotOptimize(s);
-      }
-    }
+      std::string s(bench_data[state.range(0)]);
+      benchmark::DoNotOptimize(s);
 
-    static void CopyConstructor31(benchmark::State& state)
-    {
       for (auto _ : state)
       {
-        SSTD::String s(BENCH_STRING31);
-        SSTD::String s2(s);
-        benchmark::DoNotOptimize(s);
+        std::string s2(s);
         benchmark::DoNotOptimize(s2);
       }
     }
 
-    static void Constructor64(benchmark::State& state)
+    static void MoveConstructor(benchmark::State& state)
     {
+      std::string s(bench_data[state.range(0)]);
+      benchmark::DoNotOptimize(s);
+
       for (auto _ : state)
       {
-        std::string s(BENCH_STRING64);
-        benchmark::DoNotOptimize(s);
+        std::string s2(std::move(s));
+        benchmark::DoNotOptimize(s2);
       }
     }
 
@@ -126,17 +128,14 @@ namespace BenchString
 BENCHMARK(BenchString::ConstructorEmpty);
 BENCHMARK(BenchString::STD::ConstructorEmpty);
 
-BENCHMARK(BenchString::Constructor10);
-BENCHMARK(BenchString::STD::Constructor10);
+BENCHMARK(BenchString::Constructor)->DenseRange(0, BenchString::bench_size);
+BENCHMARK(BenchString::STD::Constructor)->DenseRange(0, BenchString::bench_size);
 
-BENCHMARK(BenchString::Constructor31);
-BENCHMARK(BenchString::STD::Constructor31);
+BENCHMARK(BenchString::CopyConstructor)->DenseRange(0, BenchString::bench_size);
+BENCHMARK(BenchString::STD::CopyConstructor)->DenseRange(0, BenchString::bench_size);
 
-BENCHMARK(BenchString::Constructor64);
-BENCHMARK(BenchString::STD::Constructor64);
-
-BENCHMARK(BenchString::CopyConstructor31);
-BENCHMARK(BenchString::STD::CopyConstructor31);
+BENCHMARK(BenchString::MoveConstructor)->DenseRange(0, BenchString::bench_size);
+BENCHMARK(BenchString::STD::MoveConstructor)->DenseRange(0, BenchString::bench_size);
 
 BENCHMARK(BenchString::Reserve)->Range(1, 1 << 18);
 BENCHMARK(BenchString::STD::Reserve)->Range(1, 1 << 18);

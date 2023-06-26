@@ -5,7 +5,9 @@
 
 namespace SSTD
 {
-  template<typename T, typename E>
+  struct Error {};
+
+  template<typename T, typename E = Error>
   struct Result
   {
     Result() noexcept :m_State(State::Error) {}

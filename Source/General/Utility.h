@@ -61,12 +61,16 @@ namespace SSTD
     return static_cast<T&&>(t);
   }
 
-  template<typename T>
-  static constexpr void Swap(T& t1, T& t2) noexcept
+  template<class It1, class It2>
+  constexpr void SwapIterator(It1 a, It2 b) // constexpr since C++20
   {
-    auto temp = Move(t1);
-    t1 = Move(t2);
-    t2  = Move(temp);
+    Swap(*a, *b);
+  }
+
+  template<typename T>
+  static constexpr typename RemoveReference<T>::Type&& Move(T&& arg) noexcept
+  {
+    return static_cast<typename RemoveReference<T>::Type&&>(arg);
   }
 
   template<typename T, typename U>
@@ -77,9 +81,11 @@ namespace SSTD
     return out;
   }
 
-  template<typename T>
-  static constexpr typename RemoveReference<T>::Type&& Move(T&& arg) noexcept
+  template<typename T, typename U>
+  static constexpr void Swap(T& t1, U& t2) noexcept
   {
-    return static_cast<typename RemoveReference<T>::Type&&>(arg);
-  }
+    auto temp = Move(t1);
+    t1 = Move(t2);
+    t2 = Move(temp);
+  } 
 }

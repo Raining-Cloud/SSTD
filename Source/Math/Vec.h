@@ -146,7 +146,7 @@ namespace SSTD
       this->operator op();                      \
       return out;                               \
     }                                           \
-
+    
     VEC_SWIZZLE(x, 0);
     VEC_SWIZZLE(y, 1);
     VEC_SWIZZLE(z, 2);

@@ -47,8 +47,8 @@ namespace SSTD
     bool maximizeable = true;
 
 
-    Color background_color = Colors::DarkGrey;
-    Color titlebar_color = Colors::DarkGrey;
+    Color8 background_color = Color8(38,38,38);
+    Color8 titlebar_color = Color8(38, 38, 38);
     WindowStyle window_style = WindowStyle::Normal;
     bool shadow = true;
 
@@ -88,11 +88,11 @@ namespace SSTD
     void SetTitle(const String& title);
     String GetTitle() const { return m_Desc.title; }
 
-    void SetBackgroundColor(const Color& col) { m_Desc.background_color = col; }
-    Color GetBackgroundColor() { return m_Desc.background_color; }
+    void SetBackgroundColor(const Color8& col) { m_Desc.background_color = col; }
+    Color8 GetBackgroundColor() { return m_Desc.background_color; }
 
-    void SetTitleBarColor(const Color& col);
-    Color GetTitleBarColor() { return m_Desc.titlebar_color; }
+    void SetTitleBarColor(const Color8& col);
+    Color8 GetTitleBarColor() { return m_Desc.titlebar_color; }
 
     void* GetNative();
 

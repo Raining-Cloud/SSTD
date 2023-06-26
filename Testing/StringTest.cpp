@@ -4,9 +4,20 @@
 
 namespace SSTDTest
 {
+  struct ReturnString
+  {
+    SSTD::String Get() const
+    {
+      return SSTD::String("Hello"); 
+    }
+  };
+
   TEST(String, Constructor)
   {
     SSTD::String s;
+
+    ReturnString r;
+    EXPECT_TRUE(r.Get() == "Hello");
 
     EXPECT_EQ(s.Size(), 0);
   }

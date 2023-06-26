@@ -45,7 +45,7 @@ namespace SSTD
   struct IsNumeric<double> { static constexpr bool valid = true; };
 
   template<typename T>
-  struct NumericLimit { static constexpr uint32 value = 0; };
+  struct NumericLimit { static constexpr T value = 0; };
 
   template<typename T>
   struct NumericLimit;

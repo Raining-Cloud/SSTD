@@ -4,15 +4,12 @@
 #include "General/Meta.h"
 #include "General/Memory.h"
 
-#include "General/Exception.h"
 #include "General/Utility.h"
-
-#include "Containers/Pair.h"
-
-#include <memory>
+#include "General/Result.h"
 
 namespace SSTD
 {
+
   template <typename CharType, CharType NullTerminator, typename SizeType = size_t, template<typename> typename A = Allocator, typename G = GenericGrow>
   class TString
   {
@@ -21,23 +18,24 @@ namespace SSTD
 
     TString()
       : m_Allocator{}
-    {
-      SetShortSize(0);
-    }
+    {}
 
     explicit TString(const AllocType& alloc)
       : m_Allocator{ alloc }
-    {
-      SetShortSize(0);
-    }
+    {}
+
+    TString(const CharType* const str, const AllocType& alloc = AllocType())
+      : TString(str, Length(str), alloc)
+    {}
 
     TString(const CharType* str, SizeType size, const AllocType& alloc = AllocType())
       :m_Allocator{ alloc }
     {
       if (size > m_Data.s.capacity)
       {
-        m_Data.l.buffer = TMemCpy<CharType>(m_Allocator.Allocate(size + 1), str, size);
-        m_Data.l.capacity = size;
+        const auto tmp = m_Allocator.Allocate(size + 1);
+        TMemCpy<CharType>(tmp.ptr, str, size);
+        m_Data.l.mem = tmp;
         SetLongSize(size);
       }
       else
@@ -45,7 +43,6 @@ namespace SSTD
         TMemCpy<CharType>(m_Data.s.buffer, str, size);
         SetShortSize(size);
       }
-
     }
 
     template <SizeType N>
@@ -53,20 +50,22 @@ namespace SSTD
       : TString(str, N - 1, alloc)
     {}
 
+
     TString(const TString& other)
-      : m_Allocator{ other.m_Allocator }
     {
       if (other.GetState() == State::Short)
       {
         m_Data = other.m_Data;
+        return;
       }
-      else
-      {
-        const SizeType size = other.GetLongSize();
-        m_Data.l.buffer = TMemCpy<CharType>(m_Allocator.Allocate(size + 1), other.m_Data.l.buffer, size);
-        m_Data.l.capacity = size;
-        SetLongSize(size);
-      }
+
+      const SizeType size = other.GetLongSize();
+
+      const auto tmp = m_Allocator.Allocate(size + 1);
+      TMemCpy<CharType>(tmp.ptr, other.m_Data.l.mem.ptr, size);
+      m_Data.l.mem = tmp;
+
+      SetLongSize(size);
     }
 
     TString(TString&& other) noexcept
@@ -133,14 +132,24 @@ namespace SSTD
       return *this;
     }
 
-    CharType& At(SizeType index)
+    Result<CharType&> At(SizeType index)
     {
-      return operator[](index);
+      const auto size = Size();
+      const auto cstr = CStr();
+      if (index > size)
+        return Result<CharType&>();
+
+      return Result<CharType&>(CStr()[index]);
     }
 
-    const CharType& At(SizeType index) const
+    Result<const CharType&> At(SizeType index) const
     {
-      return operator[](index);
+      const auto size = Size();
+      const auto cstr = CStr();
+      if (index > size)
+        return Result<CharType&>();
+
+      return Result<const CharType&>(CStr()[index]);
     }
 
     CharType& Front() { return CStr()[0]; }
@@ -168,21 +177,22 @@ namespace SSTD
 
     void Reserve(SizeType capacity)
     {
-      const SizeType size = Size();
-      const CharType* cstr = CStr();
       const SizeType cap = Capacity();
 
       if (capacity <= cap)
         return;
 
-      const SizeType new_cap = (capacity + size) * 1.666;
-      CharType* tmp = TMemCpy<CharType>(m_Allocator.Allocate(new_cap + 1), cstr, size);
+      const SizeType size = Size();
+      const CharType* cstr = CStr();
+
+      const SizeType new_cap = G::Grow((capacity));
+      const auto tmp = m_Allocator.Allocate(new_cap + 1);
+      TMemCpy<CharType>(tmp.ptr, cstr, size);
 
       if (cap > m_Data.s.capacity)
-        m_Allocator.Deallocate(m_Data.l.buffer);
+        m_Allocator.Deallocate(m_Data.l.mem);
 
-      m_Data.l.buffer = tmp;
-      m_Data.l.capacity = new_cap;
+      m_Data.l.mem = tmp;
       SetLongSize(size);
     }
 
@@ -195,11 +205,12 @@ namespace SSTD
       if ((capacity < m_Data.s.capacity) || (capacity == size)) //check if we actually need to allocate new heap memory
         return;
 
-      CharType* tmp = TMemCpy<CharType>(m_Allocator.Allocate(size + 1), cstr, size);
-      m_Allocator.Deallocate(m_Data.l.buffer);
+      const auto tmp = m_Allocator.Allocate(size + 1);
+      TMemCpy<CharType>(tmp.ptr, cstr, size);
 
-      m_Data.l.buffer = tmp;
-      m_Data.l.capacity = size;
+      m_Allocator.Deallocate(m_Data.l.mem);
+
+      m_Data.l.mem = tmp;
       SetLongSize(size);
     }
 
@@ -211,31 +222,32 @@ namespace SSTD
     void Append(const CharType* str, SizeType size)
     {
       const SizeType old_size = Size();
-      const SizeType new_size = size + old_size;
+      const SizeType old_cap = Capacity();
+      CharType* const data = Data();
 
-      if (new_size <= m_Data.s.capacity)
+      const SizeType new_size = old_size + size;
+
+      if (new_size <= old_cap)
       {
-        TMemCpy<CharType>(m_Data.s.buffer + old_size, str, size);
-        SetShortSize(new_size);
-        return;
+        TMemCpy<CharType>(data + old_size, str, size);
+      }
+      else
+      {
+        Reserve(size);
+        TMemCpy<CharType>(m_Data.l.mem.ptr + size, str, size);
       }
 
-      CharType* tmp = TMemCpy<CharType>(m_Allocator.Allocate(new_size + 1), m_Data.l.buffer, old_size);
-      TMemCpy<CharType>(tmp + old_size, str, size);
-
-      if (old_size <= m_Data.s.capacity)
-        m_Allocator.Deallocate(m_Data.l.buffer);
-
-      m_Data.l.buffer = tmp;
-      m_Data.l.capacity = new_size;
-      SetLongSize(new_size);
+      if (new_size <= m_Data.s.capacity)
+        SetShortSize(new_size);
+      else
+        SetLongSize(new_size);
     }
 
     void Clear()
     {
       const State state = GetState();
       if (state == State::Long)
-        m_Allocator.Deallocate(m_Data.l.buffer);
+        m_Allocator.Deallocate(m_Data.l.mem);
       SetShortSize(0);
     }
 
@@ -245,7 +257,19 @@ namespace SSTD
       switch (state)
       {
       case State::Long:
-        return m_Data.l.buffer;
+        return m_Data.l.mem.ptr;
+      case State::Short:
+        return m_Data.s.buffer;
+      }
+    }
+
+    CharType* Data()
+    {
+      const State state = GetState();
+      switch (state)
+      {
+      case State::Long:
+        return m_Data.l.mem.ptr;
       case State::Short:
         return m_Data.s.buffer;
       }
@@ -269,7 +293,7 @@ namespace SSTD
       switch (state)
       {
       case State::Long:
-        return m_Data.l.capacity;
+        return m_Data.l.mem.size - 1;
       case State::Short:
         return m_Data.s.capacity;
       }
@@ -281,6 +305,14 @@ namespace SSTD
     }
 
     //private:
+
+    static constexpr SizeType Length(const CharType* ptr)
+    {
+      const CharType* s = ptr;
+      while (*s != NullTerminator)
+        ++s;
+      return static_cast<SizeType>(s - ptr);
+    }
 
     enum class State
     {
@@ -307,7 +339,7 @@ namespace SSTD
     {
       m_Data.s.state = static_cast<CharType>(State::Long);
       m_Data.l.size = size;
-      m_Data.l.buffer[size] = NullTerminator;
+      m_Data.l.mem.ptr[size] = NullTerminator;
     }
 
     //-----------------------------------------------------------------------------------------------
@@ -329,8 +361,7 @@ namespace SSTD
     {
       struct LongStr//this struct holds all the data for the representation of long strings (allocated on the heap), for providing the same acsess as in the short representation the size also sets the state 
       {
-        CharType* buffer;
-        SizeType capacity;
+        MemoryBlock<CharType, SizeType> mem;
         SizeType size;
         uint8 padding; //this is ONLY for the calculation of the final size !
       } l;
@@ -338,11 +369,11 @@ namespace SSTD
       struct ShortStr//this struct holds all the data for the small string which fit on the stack, we cannot easily set the size like in the long representation, so we need the size() function
       {
         static constexpr size_t capacity = (sizeof(LongStr) - sizeof(CharType)) / sizeof(CharType);
-        CharType buffer[capacity];
-        CharType state;
-      } s;
+        CharType buffer[capacity] = {0};
+        CharType state = (capacity << 2);
+      } s{};
 
-      CharType raw[sizeof(LongStr) / sizeof(CharType)];
+      uint8 raw[sizeof(LongStr) / sizeof(CharType)];
 
     } m_Data;
 

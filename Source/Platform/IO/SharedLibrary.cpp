@@ -49,8 +49,8 @@ namespace SSTD
     if (CompareFileTime(reinterpret_cast<FILETIME*>(&m_LastWriteTime), &time))
     {
       m_Handle = LoadLibraryA(m_FilePath.CStr());
-      for (auto& f : m_FuncPtrs)
-        f->ReloadFrom(m_Handle); //this way we keep the same-handles :D
+      //for (auto& f : m_FuncPtrs)
+      //  f->ReloadFrom(m_Handle); //this way we keep the same-handles :D
     }
   }
   void SharedLibrary::Free()

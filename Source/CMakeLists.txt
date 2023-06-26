@@ -45,9 +45,6 @@ set(platform_sources ${platform_sources}
    Platform/Window/Window.cpp
    Platform/Window/WindowEvent.h
 
-   Platform/Console/Console.h
-   Platform/Console/Console.cpp
-
    Platform/Threading/Thread.h
    Platform/Threading/Thread.cpp
    Platform/Threading/Mutex.h
