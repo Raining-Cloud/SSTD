@@ -16,7 +16,17 @@ namespace SSTD
   public:
     using AllocType = A<CharType>;
 
-    explicit TString() : m_Allocator{} {}
+    TString()
+      : m_Allocator{}
+    {}
+
+    explicit TString(const AllocType& alloc)
+      : m_Allocator{ alloc }
+    {}
+
+    TString(const CharType* const str, const AllocType& alloc = AllocType())
+      : TString(str, Length(str), alloc)
+    {}
 
     TString(const CharType* str, SizeType size, const AllocType& alloc = AllocType())
       :m_Allocator{ alloc }
@@ -116,8 +126,7 @@ namespace SSTD
       return *this;
     }
 
-
-    CharType& At(SizeType index) 
+    TString& operator+=(const TString& other)
     {
       Append(other);
       return *this;
