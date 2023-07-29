@@ -121,7 +121,7 @@ namespace SSTD
     m_Desc.title = title;
   }
 
-  void Window::SetTitleBarColor(const Color& col)
+  void Window::SetTitleBarColor(const Color8& col)
   {
     m_Desc.titlebar_color = col;
     COLORREF DARK_COLOR = RGB(col.r, col.g, col.b);

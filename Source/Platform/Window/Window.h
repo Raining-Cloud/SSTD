@@ -33,8 +33,8 @@ namespace SSTD
     uint32 width = 1920;
     uint32 height = 1080;
 
-    uint32 min_width = 1920/2;
-    uint32 min_height = 1080/2;
+    uint32 min_width = 1920 / 2;
+    uint32 min_height = 1080 / 2;
 
     uint32 max_width = NumericLimit<uint32>::max;
     uint32 max_height = NumericLimit<uint32>::max;
@@ -44,8 +44,8 @@ namespace SSTD
     bool minimizeable = true;
     bool maximizeable = true;
 
-    Color background_color = Colors::DarkGrey;
-    Color titlebar_color = Colors::DarkGrey;
+    Color8 background_color = { 37,37,37 };
+    Color8 titlebar_color = { 255,255,255 };
     WindowStyle window_style = WindowStyle::Windowed;
     bool shadow = true;
 
@@ -78,11 +78,11 @@ namespace SSTD
     void SetTitle(const String& title);
     String GetTitle() const { return m_Desc.title; }
 
-    void SetBackgroundColor(const Color& col) { m_Desc.background_color = col; }
-    Color GetBackgroundColor() { return m_Desc.background_color; }
+    void SetBackgroundColor(const Color8& col) { m_Desc.background_color = col; }
+    Color8 GetBackgroundColor() { return m_Desc.background_color; }
 
-    void SetTitleBarColor(const Color& col);
-    Color GetTitleBarColor() { return m_Desc.titlebar_color; }
+    void SetTitleBarColor(const Color8& col);
+    Color8 GetTitleBarColor() { return m_Desc.titlebar_color; }
 
     String GetName() const { return m_Desc.name; }
 
@@ -113,7 +113,7 @@ namespace SSTD
     static Window* Create(const WindowDesc& desc) { return new Window(desc); }
     static void Delete(Window* window) { delete window; }
 
-  private:  
+  private:
     Window(const WindowDesc& desc);
     ~Window();
 

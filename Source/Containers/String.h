@@ -116,23 +116,6 @@ namespace SSTD
       return *this;
     }
 
-
-    CharType& At(SizeType index) 
-    {
-      Append(other);
-      return *this;
-    }
-
-    Result<CharType&> At(SizeType index)
-    {
-      const auto size = Size();
-      const auto cstr = CStr();
-      if (index > size)
-        return Result<CharType&>();
-
-      return Result<CharType&>(CStr()[index]);
-    }
-
     Result<const CharType&> At(SizeType index) const
     {
       const auto size = Size();
