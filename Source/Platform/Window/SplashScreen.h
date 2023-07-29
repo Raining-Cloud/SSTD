@@ -15,7 +15,7 @@ namespace SSTD
     float size = 0.3f; //relation of the current screen width
 
     bool alpha = false;
-    Color alpha_color;
+    Color8 alpha_color;
   };
 
   class SplashScreen

@@ -16,17 +16,7 @@ namespace SSTD
   public:
     using AllocType = A<CharType>;
 
-    TString()
-      : m_Allocator{}
-    {}
-
-    explicit TString(const AllocType& alloc)
-      : m_Allocator{ alloc }
-    {}
-
-    TString(const CharType* const str, const AllocType& alloc = AllocType())
-      : TString(str, Length(str), alloc)
-    {}
+    explicit TString() : m_Allocator{} {}
 
     TString(const CharType* str, SizeType size, const AllocType& alloc = AllocType())
       :m_Allocator{ alloc }
@@ -124,22 +114,6 @@ namespace SSTD
       m_Data = other.m_Data;
       other.SetShortSize(0);
       return *this;
-    }
-
-    TString& operator+=(const TString& other)
-    {
-      Append(other);
-      return *this;
-    }
-
-    Result<CharType&> At(SizeType index)
-    {
-      const auto size = Size();
-      const auto cstr = CStr();
-      if (index > size)
-        return Result<CharType&>();
-
-      return Result<CharType&>(CStr()[index]);
     }
 
     Result<const CharType&> At(SizeType index) const
