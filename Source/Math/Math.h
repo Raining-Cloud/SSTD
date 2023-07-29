@@ -74,5 +74,23 @@ namespace SSTD
       val |= val >> 32;
       return LUT::Log2_64[((uint64)((val - (val >> 1)) * 0x07EDD5E59A4E28C2)) >> 58];
     }
+
+    template<typename T>
+    static constexpr T Max(T a, T b)
+    {
+      return (a > b) ? a : b;
+    }
+
+    template<typename T>
+    static constexpr T Min(T a, T b)
+    {
+      return (a < b) ? a : b;
+    }
+
+    template<typename T>
+    static constexpr T Clamp(T value, T min, T max)
+    {
+      return (value > max) ? max : (value < min) ? min : value;
+    }
   };
 }

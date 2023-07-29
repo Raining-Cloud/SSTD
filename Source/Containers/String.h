@@ -144,8 +144,9 @@ namespace SSTD
       return *this;
     }
 
+    explicit operator CharType* () { return CStr(); }
 
-    CharType& At(SizeType index) 
+    CharType& At(SizeType index)
     {
       if (IsShort())
       {
@@ -235,12 +236,12 @@ namespace SSTD
         SizeType c = Grow(SSOSize + capacity);
         SizeType size = GetShortSize();
 
-        if (c < SSOSize) 
+        if (c < SSOSize)
           return;
         auto temp = m_Allocator.Allocate(c);
         TMemCpy<CharType>(temp, m_Data.short_string.buffer, size);
-        
-        
+
+
         m_Data.long_string.buffer = temp;
         m_Data.long_string.capacity = c;
         m_Data.long_string.msb_capacity = c;
@@ -328,12 +329,12 @@ namespace SSTD
       return Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.size), !m_Data.long_string.size);
     }
 
-     SizeType GetLongCapacity() const
+    SizeType GetLongCapacity() const
     {
       return Bit::ApplyMSB(static_cast<SizeType> (m_Data.long_string.capacity), m_Data.long_string.msb_capacity);
     }
 
-     bool IsShort() const
+    bool IsShort() const
     {
       return !m_Data.long_string.msb_capacity & !m_Data.long_string.msb_size;
     }
@@ -371,6 +372,6 @@ namespace SSTD
     [[msvc::no_unique_address]] AllocType m_Allocator;	//TODO: this is MSVC specific, we may need to work with different compilers at some point
   };
 
-  using String   = TString<char, '\0'>;
+  using String = TString<char, '\0'>;
   using WString = TString<wchar_t, L'\0'>;
 }

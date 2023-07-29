@@ -45,6 +45,8 @@ set(platform_sources ${platform_sources}
    Platform/Window/Window.h
    Platform/Window/Window.cpp
    Platform/Window/WindowEvent.h
+   Platform/Window/SplashScreen.h
+   Platform/Window/SplashScreen.cpp
 
    Platform/Console/Console.h
    Platform/Console/Console.cpp

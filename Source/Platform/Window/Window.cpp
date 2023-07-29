@@ -6,7 +6,7 @@ namespace SSTD
   //                    GENERAL
   //////////////////////////////////////////////////////
 
-  const Window::WindowEventQueue Window::BeginEvents() const
+  const Window::WindowEventQueue& Window::BeginEvents() const
   {
     return m_EventQueue;
   }
@@ -32,10 +32,6 @@ namespace SSTD
 #undef IsMaximized
 #endif // IsMaximized
 
-  Window::Window()
-    :m_Desc(), m_WindowHandle(nullptr), m_EventQueue(), m_WindowPlacement()
-  {}
-
   Window::Window(const WindowDesc& desc)
     : m_Desc(desc)
   {
@@ -45,10 +41,10 @@ namespace SSTD
     wndc.style = CS_HREDRAW | CS_VREDRAW;
     wndc.lpfnWndProc = WndProcStatic;
     wndc.hInstance = hInstance;
-    wndc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wndc.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
+    wndc.hCursor = LoadCursor(NULL, IDC_HAND);
+    wndc.hIcon = (HICON)LoadImageA(NULL, m_Desc.icon_path.CStr(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_LOADTRANSPARENT);
     wndc.hIconSm = wndc.hIcon;
-    wndc.lpszClassName = desc.title.CStr();
+    wndc.lpszClassName = desc.name.CStr();
 
     if (!RegisterClassExA(&wndc))
     {
@@ -56,42 +52,34 @@ namespace SSTD
         throw;
     }
 
-    m_WindowHandle = CreateWindowExA(
+    m_HWND = CreateWindowExA(
       0,
-      desc.title.CStr(),
       desc.name.CStr(),
+      desc.title.CStr(),
       ToNative(m_Desc.window_style),
       m_Desc.x,
       m_Desc.y,
       m_Desc.width,
       m_Desc.height,
-      nullptr,
-      nullptr,
+      NULL,
+      NULL,
       hInstance,
       this); //this can cause trouble while moving!
+    
+    if (!m_HWND) return; //failed to create the window!
 
-    COLORREF DARK_COLOR = RGB(m_Desc.titlebar_color.r, m_Desc.titlebar_color.g, m_Desc.titlebar_color.b);
-    DwmSetWindowAttribute(m_WindowHandle, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &DARK_COLOR, sizeof(DARK_COLOR));
-
-    if (m_Desc.visible)
-    {
-      Show();
-      Focus();
-      if (m_Desc.centered)
-        Center();
-      Fullscreen(m_Desc.fullscreen);
-    }
+    SetTitleBarColor(m_Desc.titlebar_color);
   }
 
   Window::~Window()
   {
-    if (m_WindowHandle != nullptr)
+    if (m_HWND != nullptr)
       Close();
   }
 
   void Window::Procces()
   {
-    if (m_WindowHandle == nullptr)
+    if (m_HWND == nullptr)
       return;
 
     MSG msg = { };
@@ -104,12 +92,12 @@ namespace SSTD
 
   void Window::Realign(uint32 width, uint32 height, uint32 x, uint32 y)
   {
-    SetWindowPos(m_WindowHandle, 0, x, y, width, height, SWP_NOZORDER | SWP_NOSIZE);
+    SetWindowPos(m_HWND, 0, x, y, width, height, SWP_NOZORDER | SWP_NOSIZE);
   }
 
   void Window::SetPosition(uint32 x, uint32 y)
   {
-    SetWindowPos(m_WindowHandle, 0, x, y, m_Desc.width, m_Desc.height, SWP_NOZORDER | SWP_NOSIZE);
+    SetWindowPos(m_HWND, 0, x, y, m_Desc.width, m_Desc.height, SWP_NOZORDER | SWP_NOSIZE);
     m_Desc.x = x;
     m_Desc.y = y;
   }
@@ -117,9 +105,9 @@ namespace SSTD
   void Window::SetSize(uint32 width, uint32 height)
   {
     RECT r;
-    if (GetWindowRect(m_WindowHandle, &r))
+    if (GetWindowRect(m_HWND, &r))
     {
-      SetWindowPos(m_WindowHandle, 0, r.left, r.top, width, height, 0);
+      SetWindowPos(m_HWND, 0, r.left, r.top, width, height, 0);
       m_Desc.x = r.left;
       m_Desc.y = r.top;
     }
@@ -129,7 +117,7 @@ namespace SSTD
 
   void Window::SetTitle(const SSTD::String& title)
   {
-    SetWindowTextA(m_WindowHandle, title.CStr());
+    SetWindowTextA(m_HWND, title.CStr());
     m_Desc.title = title;
   }
 
@@ -137,43 +125,45 @@ namespace SSTD
   {
     m_Desc.titlebar_color = col;
     COLORREF DARK_COLOR = RGB(col.r, col.g, col.b);
-    DwmSetWindowAttribute(m_WindowHandle, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &DARK_COLOR, sizeof(DARK_COLOR));
+    DwmSetWindowAttribute(m_HWND, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &DARK_COLOR, sizeof(DARK_COLOR));
   }
 
-  void* Window::GetNative()
+  void* Window::GetNative() const
   {
-    return static_cast<void*>(m_WindowHandle);
+    return static_cast<void*>(m_HWND);
   }
 
   void Window::Close()
   {
-    if (m_WindowHandle != nullptr)
-      DestroyWindow(m_WindowHandle);
+    if (m_HWND != nullptr)
+    {
+      DestroyWindow(m_HWND);
+    }
   }
 
   void Window::Minimize()
   {
-    ShowWindow(m_WindowHandle, SW_MINIMIZE);
+    ShowWindow(m_HWND, SW_MINIMIZE);
   }
 
   bool Window::IsMinimized() const
   {
-    return IsIconic(m_WindowHandle);
+    return IsIconic(m_HWND);
   }
 
   void Window::Maximize()
   {
-    ShowWindow(m_WindowHandle, SW_MAXIMIZE);
+    ShowWindow(m_HWND, SW_MAXIMIZE);
   }
 
   bool Window::IsMaximized() const
   {
-    return IsZoomed(m_WindowHandle);
+    return IsZoomed(m_HWND);
   }
 
   void Window::Hide()
   {
-    ShowWindow(m_WindowHandle, SW_HIDE);
+    ShowWindow(m_HWND, SW_HIDE);
   }
 
   bool Window::IsHidden()
@@ -183,58 +173,62 @@ namespace SSTD
 
   void Window::Show()
   {
-    ShowWindow(m_WindowHandle, SW_SHOW);
+    ShowWindow(m_HWND, SW_SHOW);
   }
 
   bool Window::IsVisible() const
   {
-    return IsWindowVisible(m_WindowHandle);
+    return IsWindowVisible(m_HWND);
   }
 
   void Window::Focus()
   {
-    SetFocus(m_WindowHandle);
+    SetFocus(m_HWND);
   }
 
   bool Window::IsFocused() const
   {
-    return (m_WindowHandle == GetFocus());
+    return (m_HWND == GetFocus());
   }
 
   void Window::Fullscreen(bool state)
   {
     //cheack wheater we need to switch the state!
-    DWORD dwStyle = GetWindowLong(m_WindowHandle, GWL_STYLE);
+    DWORD dwStyle = GetWindowLong(m_HWND, GWL_STYLE);
     if (dwStyle & WS_OVERLAPPEDWINDOW && state)
     {
       //set to fullscreen
       MONITORINFO mi = { sizeof(mi) };
-      if (GetWindowPlacement(m_WindowHandle, &m_WindowPlacement) && GetMonitorInfo(MonitorFromWindow(m_WindowHandle, MONITOR_DEFAULTTOPRIMARY), &mi))
+      WINDOWPLACEMENT wpl;
+      if (GetWindowPlacement(m_HWND, &wpl) && GetMonitorInfo(MonitorFromWindow(m_HWND, MONITOR_DEFAULTTOPRIMARY), &mi))
       {
-        SetWindowPos(m_WindowHandle, HWND_TOP,
+        SetWindowPos(m_HWND, HWND_TOP,
           mi.rcMonitor.left, mi.rcMonitor.top,
           mi.rcMonitor.right - mi.rcMonitor.left,
           mi.rcMonitor.bottom - mi.rcMonitor.top,
           SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-        SetWindowLong(m_WindowHandle, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW); //looks cleaner becaus the user cant see the style change
+        SetWindowLong(m_HWND, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW); //looks cleaner becaus the user cant see the style change
       }
     }
     else
     {
       //set to windowed
-      SetWindowLong(m_WindowHandle, GWL_STYLE, ToNative(m_Desc.window_style));
-      SetWindowPlacement(m_WindowHandle, &m_WindowPlacement);
-      SetWindowPos(m_WindowHandle, NULL, 0, 0, 0, 0,
+      SetWindowLong(m_HWND, GWL_STYLE, ToNative(m_Desc.window_style));
+      //SetWindowPlacement(m_WindowHandle, &m_WindowPlacement); //ToDo: implement this to keep original position and size
+      SetWindowPos(m_HWND, NULL, 0, 0, 0, 0,
         SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
-      ShowWindow(m_WindowHandle, SW_NORMAL);
+      ShowWindow(m_HWND, SW_NORMAL);
     }
   }
 
   bool Window::IsFullscreen() const
   {
-    return m_Desc.fullscreen;
+    RECT r, wr;
+    GetWindowRect(GetDesktopWindow(), &r);
+    GetWindowRect(m_HWND, &wr);
+    return r.right == (wr.right - wr.left) && r.bottom == (wr.bottom - wr.top);
   }
 
   void Window::Center()
@@ -274,12 +268,6 @@ namespace SSTD
       break;
     case WM_PAINT:
     {
-      PAINTSTRUCT ps;
-      HDC hdc = BeginPaint(hwnd, &ps);
-      HBRUSH col = CreateSolidBrush(RGB(m_Desc.background_color.r, m_Desc.background_color.g, m_Desc.background_color.b));
-      FillRect(hdc, &ps.rcPaint, col);
-      EndPaint(hwnd, &ps);
-      DeleteObject(col);
       e = WindowEvent(EventType::Paint);
       break;
     }
@@ -288,7 +276,6 @@ namespace SSTD
       uint32 w, h;
       w = static_cast<uint32>(LOWORD(lParam));
       h = static_cast<uint32>(HIWORD(lParam));
-      m_Desc.width = w; m_Desc.height = h;
       e = WindowEvent(ResizeData{ .width = w, .height = h });
       break;
     }
@@ -313,10 +300,7 @@ namespace SSTD
       break;
     case WM_MOVE:
     {
-      m_Desc.x = static_cast<uint32>(LOWORD(lParam));
-      m_Desc.y = static_cast<uint32>(HIWORD(lParam));
-
-      e = WindowEvent(EventType::Move);
+      e = WindowEvent(MoveData{ .x = static_cast<uint32>(LOWORD(lParam)), .y = static_cast<uint32>(HIWORD(lParam)) });
       break;
     }
     case WM_MOUSEWHEEL:
@@ -362,7 +346,7 @@ namespace SSTD
     //only push if we have an actual event!
     if (e.Type() != EventType::None)
     {
-      m_EventQueue.PushBack(e);
+      m_EventQueue.EmplaceBack(e);
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -370,14 +354,12 @@ namespace SSTD
 
   DWORD Window::ToNative(WindowStyle style) const
   {
-    switch (m_Desc.window_style)
+    switch (style)
     {
     case WindowStyle::Borderless:
-      return WS_POPUPWINDOW;
-    case WindowStyle::PopUp:
-      return WS_SYSMENU;
+      return WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     default:
-      return WS_OVERLAPPEDWINDOW; // use normal style as default!
+      return WS_OVERLAPPEDWINDOW | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX; // use normal style as default!
     }
   }
 
