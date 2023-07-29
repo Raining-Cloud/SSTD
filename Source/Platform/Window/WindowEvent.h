@@ -23,10 +23,8 @@ namespace SSTD
     MouseMove,
     MouseWheel,
     Touch,
-    Gamepad,
-    MAX
+    Gamepad
   };
-
 
   struct None
   {
@@ -45,6 +43,13 @@ namespace SSTD
     uint32 width;
     uint32 height;
     static constexpr EventType type = EventType::Resize;
+  };
+
+  struct MoveData
+  {
+    uint32 x;
+    uint32 y;
+    static constexpr EventType type = EventType::Move;
   };
 
   struct DPIData
@@ -113,6 +118,7 @@ namespace SSTD
 
     WindowEvent(FocusData d) : m_Type(d.type) { m_Data.focus_data = d; }
     WindowEvent(ResizeData d) : m_Type(d.type) { m_Data.resize_data = d; }
+    WindowEvent(MoveData d) : m_Type(d.type) { m_Data.move_data = d; }
     WindowEvent(DPIData d) : m_Type(d.type) { m_Data.dpi_data = d; }
     WindowEvent(CharData d) : m_Type(d.type) { m_Data.char_data = d; }
     WindowEvent(KeyboardInputData d) : m_Type(d.type) { m_Data.keyboard_data = d; }
@@ -129,6 +135,7 @@ namespace SSTD
       None none{};
       FocusData focus_data;
       ResizeData resize_data;
+      MoveData move_data;
       DPIData dpi_data;
       CharData char_data;
       KeyboardInputData keyboard_data;

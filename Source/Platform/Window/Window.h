@@ -12,7 +12,7 @@
 namespace SSTD
 {
 
-  enum class CursorMode : uint8
+  enum class CursorMode
   {
     None,
     Visible,
@@ -21,9 +21,8 @@ namespace SSTD
 
   enum class WindowStyle
   {
-    Normal,
+    Windowed,
     Borderless,
-    PopUp,
   };
 
   struct WindowDesc
@@ -40,24 +39,19 @@ namespace SSTD
     uint32 max_width = NumericLimit<uint32>::max;
     uint32 max_height = NumericLimit<uint32>::max;
 
-    bool centered = true;
     bool moveable = true;
     bool closeable = true;
     bool minimizeable = true;
     bool maximizeable = true;
 
-
-    Color8 background_color = Color8(38,38,38);
-    Color8 titlebar_color = Color8(38, 38, 38);
-    WindowStyle window_style = WindowStyle::Normal;
+    Color background_color = Colors::DarkGrey;
+    Color titlebar_color = Colors::DarkGrey;
+    WindowStyle window_style = WindowStyle::Windowed;
     bool shadow = true;
-
-    bool visible = true;
-    bool fullscreen = false;
 
     String title = "Window";
     String name = "WindowApplication";
-    String icon = "";
+    String icon_path = "";
   };
 
   class Window
@@ -65,17 +59,13 @@ namespace SSTD
   public:
     using WindowEventQueue = Vector<WindowEvent>;
 
-    explicit Window();
-    Window(const WindowDesc& desc);
-    ~Window();
+    Window() = delete;
 
     void Procces();
-    const WindowEventQueue BeginEvents() const;
+    const WindowEventQueue& BeginEvents() const;
     void EndEvents();
 
     void Realign(uint32 width, uint32 height, uint32 x, uint32 y);
-
-    void UpdateDesc(const WindowDesc& desc) { throw; }
 
     void SetPosition(uint32 x, uint32 height);
     uint32 GetPositionX() const { return m_Desc.x; }
@@ -88,13 +78,15 @@ namespace SSTD
     void SetTitle(const String& title);
     String GetTitle() const { return m_Desc.title; }
 
-    void SetBackgroundColor(const Color8& col) { m_Desc.background_color = col; }
-    Color8 GetBackgroundColor() { return m_Desc.background_color; }
+    void SetBackgroundColor(const Color& col) { m_Desc.background_color = col; }
+    Color GetBackgroundColor() { return m_Desc.background_color; }
 
-    void SetTitleBarColor(const Color8& col);
-    Color8 GetTitleBarColor() { return m_Desc.titlebar_color; }
+    void SetTitleBarColor(const Color& col);
+    Color GetTitleBarColor() { return m_Desc.titlebar_color; }
 
-    void* GetNative();
+    String GetName() const { return m_Desc.name; }
+
+    void* GetNative() const;
 
     void Close();
 
@@ -117,7 +109,14 @@ namespace SSTD
     bool IsFullscreen() const;
 
     void Center();
-  private:
+
+    static Window* Create(const WindowDesc& desc) { return new Window(desc); }
+    static void Delete(Window* window) { delete window; }
+
+  private:  
+    Window(const WindowDesc& desc);
+    ~Window();
+
 #ifdef PLATFORM_WIN64
 
     LRESULT WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -125,8 +124,7 @@ namespace SSTD
 
     DWORD ToNative(WindowStyle style) const;
 
-    HWND m_WindowHandle = nullptr;
-    WINDOWPLACEMENT m_WindowPlacement = { };
+    HWND m_HWND = nullptr;
 #elif PLATFORM_WIN32
 #elif PLATFORM_IPHONE_SIM
 #elif PLATFORM_IPHONE
