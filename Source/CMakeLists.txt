@@ -63,6 +63,7 @@ set(math_sources ${math_sources}
     Math/Math.h
     Math/Vec.h
     Math/Mat.h
+    Math/Complex.h
 )
 
 set(experimental_sources ${experimental_sources}

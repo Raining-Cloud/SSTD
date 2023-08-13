@@ -68,21 +68,19 @@ namespace SSTD
     void Realign(uint32 width, uint32 height, uint32 x, uint32 y);
 
     void SetPosition(uint32 x, uint32 height);
-    uint32 GetPositionX() const { return m_Desc.x; }
-    uint32 GetPositionY() const { return m_Desc.y; }
+    Vec2<uint32> GetPosition() const;
 
     void SetSize(uint32 width, uint32 height);
-    uint32 GetWidth() const { return m_Desc.width; }
-    uint32 GetHeight() const { return m_Desc.height; }
+    Vec2<uint32> GetSize() const;
 
     void SetTitle(const String& title);
-    String GetTitle() const { return m_Desc.title; }
+    String GetTitle() const;
 
-    void SetBackgroundColor(const Color8& col) { m_Desc.background_color = col; }
-    Color8 GetBackgroundColor() { return m_Desc.background_color; }
+    void SetBackgroundColor(const Color8& col);
+    Color8 GetBackgroundColor();
 
     void SetTitleBarColor(const Color8& col);
-    Color8 GetTitleBarColor() { return m_Desc.titlebar_color; }
+    Color8 GetTitleBarColor();
 
     String GetName() const { return m_Desc.name; }
 

@@ -98,9 +98,15 @@ namespace SSTD
   void Window::SetPosition(uint32 x, uint32 y)
   {
     SetWindowPos(m_HWND, 0, x, y, m_Desc.width, m_Desc.height, SWP_NOZORDER | SWP_NOSIZE);
-    m_Desc.x = x;
-    m_Desc.y = y;
   }
+
+  Vec2<uint32> Window::GetPosition() const
+  {
+    RECT r;
+    GetWindowRect(m_HWND, &r);
+    return {r.left, r.top};
+  }
+
 
   void Window::SetSize(uint32 width, uint32 height)
   {
@@ -108,24 +114,52 @@ namespace SSTD
     if (GetWindowRect(m_HWND, &r))
     {
       SetWindowPos(m_HWND, 0, r.left, r.top, width, height, 0);
-      m_Desc.x = r.left;
-      m_Desc.y = r.top;
     }
-    m_Desc.width = width;
-    m_Desc.height = height;
+  }
+
+  Vec2<uint32> Window::GetSize() const
+  {
+    RECT r;
+    GetWindowRect(m_HWND, &r);
+    return { r.right - r.left, r.bottom - r.top };
   }
 
   void Window::SetTitle(const SSTD::String& title)
   {
     SetWindowTextA(m_HWND, title.CStr());
-    m_Desc.title = title;
+  }
+
+  String Window::GetTitle() const
+  {
+    uint32 len = GetWindowTextLengthA(m_HWND);
+    String s;
+    s.Resize(len);
+
+    GetWindowTextA(m_HWND, s.Data(), len);
+    return s;
+  }
+
+  void Window::SetBackgroundColor(const Color8& col)
+  {
+    m_Desc.background_color = col;
+  }
+
+  Color8 Window::GetBackgroundColor()
+  {
+    return m_Desc.background_color;
   }
 
   void Window::SetTitleBarColor(const Color8& col)
   {
-    m_Desc.titlebar_color = col;
-    COLORREF DARK_COLOR = RGB(col.r, col.g, col.b);
-    DwmSetWindowAttribute(m_HWND, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &DARK_COLOR, sizeof(DARK_COLOR));
+    COLORREF colref = RGB(col.r, col.g, col.b);
+    DwmSetWindowAttribute(m_HWND, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &colref, sizeof(colref));
+  }
+
+  Color8 Window::GetTitleBarColor()
+  {
+    COLORREF col;
+    DwmGetWindowAttribute(m_HWND, DWMWINDOWATTRIBUTE::DWMWA_BORDER_COLOR, &col, sizeof(col));
+    return { GetRValue(col), GetGValue(col), GetBValue(col) };
   }
 
   void* Window::GetNative() const
@@ -233,7 +267,8 @@ namespace SSTD
 
   void Window::Center()
   {
-    SetPosition(GetSystemMetrics(SM_CXSCREEN) / 2 - m_Desc.width / 2, GetSystemMetrics(SM_CYSCREEN) / 2 - m_Desc.height / 2);
+    const auto dim = GetSize();
+    SetPosition(GetSystemMetrics(SM_CXSCREEN) / 2 - dim.x() / 2, GetSystemMetrics(SM_CYSCREEN) / 2 - dim.y() / 2);
   }
 
   LRESULT Window::WndProcStatic(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

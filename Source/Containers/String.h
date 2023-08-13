@@ -140,7 +140,7 @@ namespace SSTD
 
 
       for (SizeType i = old_size; i < size; i++)
-        CStr()[i] = fill;
+        Data()[i] = fill;
 
       if (state == State::Long)
         SetLongSize(size);

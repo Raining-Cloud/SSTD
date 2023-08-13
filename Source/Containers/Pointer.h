@@ -113,6 +113,8 @@ namespace SSTD
 
       m_Ptr = other.m_Ptr;
       other.m_Ptr = nullptr;
+
+      return *this;
     }
 
     bool operator==(const T* ptr) { return m_Ptr == ptr; }

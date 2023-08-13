@@ -47,7 +47,7 @@ namespace SSTD
 
     template<typename ... Args>
       requires (sizeof...(Args) == Dim)
-    Vec(Args&&... args) : data{ args... } {}
+    Vec(Args&&... args) : data{ static_cast<T>(args)... } {}
 
     template<size_t OtherDim>
       requires (Dim <= OtherDim)
@@ -66,19 +66,19 @@ namespace SSTD
 
 
     template<size_t Index>
-    constexpr auto Swizzle() requires (Dim >= Index)
+    constexpr auto Swizzle() const requires (Dim >= Index)
     {
       return data[Index];
     }
 
     template<size_t ... Indices>
-    constexpr auto Swizzle() requires (sizeof...(Indices) > 1) && ((Dim >= Indices) && ...)
+    constexpr auto Swizzle() const requires (sizeof...(Indices) > 1) && ((Dim >= Indices) && ...)
     {
       return SwizzleProxy<Indices...>{ data };
     }
 
 #define VEC_SWIZZLE(op, ...)                                \
-    constexpr auto op() { return Swizzle<__VA_ARGS__>(); }  \
+    constexpr auto op() const { return Swizzle<__VA_ARGS__>(); }  \
 
 #define VEC_OPERATOR_ASSIGNMENT(op)             \
     constexpr Vec& operator op(const Vec& other)\
